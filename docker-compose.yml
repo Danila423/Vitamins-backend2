@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: vitamins
+      POSTGRES_PASSWORD: vitamins
+      POSTGRES_DB: vitamins
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./internal/db/models.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ./internal/db/seed_vitamin_catalog.sql:/docker-entrypoint-initdb.d/002_seed_catalog.sql:ro
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  api:
+    build: .
+    depends_on: [db, redis]
+    env_file:
+      - .env
+    environment:
+      HTTP_PORT: "8080"
+      REDIS_ADDR: "redis:6379"
+    ports:
+      - "8080:8080"
+
+  db-seed:
+    image: postgres:16
+    depends_on: [db]
+    environment:
+      PGPASSWORD: vitamins
+    volumes:
+      - ./internal/db/seed_vitamin_catalog.sql:/seed/seed_vitamin_catalog.sql:ro
+    entrypoint: ["/bin/bash", "-c"]
+    command: >
+      until pg_isready -h db -U vitamins -d vitamins; do sleep 1; done;
+      until psql -h db -U vitamins -d vitamins -c "select 1 from vitamin_catalog limit 1" >/dev/null 2>&1; do sleep 1; done;
+      psql -h db -U vitamins -d vitamins -f /seed/seed_vitamin_catalog.sql
+    restart: "no"
+
+volumes:
+  db_data:

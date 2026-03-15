@@ -1,0 +1,902 @@
+definitions:
+  auth.AuthRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  auth.ErrorResponse:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+    type: object
+  auth.PasswordChangeConfirmRequest:
+    properties:
+      changeToken:
+        type: string
+      password:
+        type: string
+      passwordConfirm:
+        type: string
+    type: object
+  auth.PasswordChangeVerifyRequest:
+    properties:
+      code:
+        type: string
+    type: object
+  auth.PasswordChangeVerifyResponse:
+    properties:
+      changeToken:
+        type: string
+    type: object
+  auth.PasswordResetConfirmRequest:
+    properties:
+      password:
+        type: string
+      passwordConfirm:
+        type: string
+      resetToken:
+        type: string
+    type: object
+  auth.PasswordResetRequest:
+    properties:
+      email:
+        type: string
+    type: object
+  auth.PasswordResetVerifyRequest:
+    properties:
+      code:
+        type: string
+      email:
+        type: string
+    type: object
+  auth.PasswordResetVerifyResponse:
+    properties:
+      resetToken:
+        type: string
+    type: object
+  auth.TokenPair:
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+    type: object
+  auth.UpdateProfileRequest:
+    properties:
+      email:
+        type: string
+      firstName:
+        type: string
+      lastName:
+        type: string
+    type: object
+  auth.UserProfileResponse:
+    properties:
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: integer
+      lastName:
+        type: string
+    type: object
+  vitamins.CatalogItem:
+    properties:
+      code:
+        type: string
+      compatibility_text:
+        type: string
+      contraindications_text:
+        type: string
+      default_condition:
+        type: string
+      default_unit:
+        type: string
+      display_name:
+        type: string
+      id:
+        type: integer
+      interaction_text:
+        type: string
+    type: object
+  vitamins.ContentOverridesInput:
+    properties:
+      compatibility_text_override:
+        type: string
+      contraindications_text_override:
+        type: string
+      interaction_text_override:
+        type: string
+    type: object
+  vitamins.ContentOverridesResponse:
+    properties:
+      compatibility_text_override:
+        type: string
+      contraindications_text_override:
+        type: string
+      interaction_text_override:
+        type: string
+    type: object
+  vitamins.CourseInput:
+    properties:
+      duration_days:
+        type: integer
+      end_date:
+        type: string
+      start_date:
+        type: string
+      timezone:
+        type: string
+    type: object
+  vitamins.CourseResponse:
+    properties:
+      end_date:
+        type: string
+      start_date:
+        type: string
+      timezone:
+        type: string
+    type: object
+  vitamins.CreateReminderRequest:
+    properties:
+      catalog_id:
+        type: integer
+      condition:
+        type: string
+      content_overrides:
+        $ref: '#/definitions/vitamins.ContentOverridesInput'
+      course:
+        $ref: '#/definitions/vitamins.CourseInput'
+      dose:
+        type: string
+      form:
+        type: string
+      name:
+        type: string
+      note:
+        type: string
+      notification_preferences:
+        $ref: '#/definitions/vitamins.NotificationPreferencesInput'
+      schedule:
+        $ref: '#/definitions/vitamins.ScheduleInput'
+    type: object
+  vitamins.ErrorResponse:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+    type: object
+  vitamins.NotificationPreferencesInput:
+    properties:
+      include_compatibility:
+        type: boolean
+      include_condition:
+        type: boolean
+      include_contraindications:
+        type: boolean
+      include_dose:
+        type: boolean
+      include_frequency:
+        type: boolean
+      include_interaction:
+        type: boolean
+    type: object
+  vitamins.NotificationPreferencesResponse:
+    properties:
+      include_compatibility:
+        type: boolean
+      include_condition:
+        type: boolean
+      include_contraindications:
+        type: boolean
+      include_dose:
+        type: boolean
+      include_frequency:
+        type: boolean
+      include_interaction:
+        type: boolean
+    type: object
+  vitamins.ReminderResponse:
+    properties:
+      catalog:
+        $ref: '#/definitions/vitamins.CatalogItem'
+      catalog_id:
+        type: integer
+      condition:
+        type: string
+      content_overrides:
+        $ref: '#/definitions/vitamins.ContentOverridesResponse'
+      course:
+        $ref: '#/definitions/vitamins.CourseResponse'
+      dose:
+        type: string
+      form:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      name:
+        type: string
+      note:
+        type: string
+      notification_preferences:
+        $ref: '#/definitions/vitamins.NotificationPreferencesResponse'
+      schedule:
+        $ref: '#/definitions/vitamins.ScheduleResponse'
+    type: object
+  vitamins.ScheduleInput:
+    properties:
+      days:
+        items:
+          type: string
+        type: array
+      times:
+        items:
+          type: string
+        type: array
+    type: object
+  vitamins.ScheduleResponse:
+    properties:
+      days:
+        items:
+          type: string
+        type: array
+      times:
+        items:
+          type: string
+        type: array
+      type:
+        type: string
+    type: object
+  vitamins.UpdateReminderRequest:
+    properties:
+      condition:
+        type: string
+      content_overrides:
+        $ref: '#/definitions/vitamins.ContentOverridesInput'
+      course:
+        $ref: '#/definitions/vitamins.CourseInput'
+      dose:
+        type: string
+      form:
+        type: string
+      name:
+        type: string
+      note:
+        type: string
+      notification_preferences:
+        $ref: '#/definitions/vitamins.NotificationPreferencesInput'
+      schedule:
+        $ref: '#/definitions/vitamins.ScheduleInput'
+    type: object
+info:
+  contact: {}
+  description: API для регистрации и авторизации
+  title: Vitamins API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Проверяет учетные данные и возвращает новую пару токенов
+      parameters:
+      - description: Данные пользователя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.AuthRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.TokenPair'
+        "400":
+          description: EMAIL_AND_PASSWORD_REQUIRED, EMAIL_REQUIRED, INVALID_EMAIL_FORMAT,
+            PASSWORD_REQUIRED, INVALID_PASSWORD_FORMAT
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "401":
+          description: INVALID_CREDENTIALS
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      summary: Авторизация пользователя
+      tags:
+      - auth
+  /auth/password/reset/confirm:
+    post:
+      consumes:
+      - application/json
+      description: Устанавливает новый пароль по resetToken
+      parameters:
+      - description: Reset token и новый пароль
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.PasswordResetConfirmRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: PASSWORD_REQUIRED, INVALID_PASSWORD_FORMAT, PASSWORD_CONFIRMATION_MISMATCH,
+            RESET_TOKEN_REQUIRED
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "401":
+          description: RESET_SESSION_INVALID, RESET_SESSION_EXPIRED
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      summary: Смена пароля
+      tags:
+      - auth
+  /auth/password/reset/request:
+    post:
+      consumes:
+      - application/json
+      description: Отправляет код на e-mail через SMTP
+      parameters:
+      - description: E-mail
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.PasswordResetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: EMAIL_REQUIRED, INVALID_EMAIL_FORMAT
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "429":
+          description: TOO_MANY_REQUESTS
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      summary: Запрос кода восстановления пароля
+      tags:
+      - auth
+  /auth/password/reset/verify:
+    post:
+      consumes:
+      - application/json
+      description: Проверяет код и возвращает resetToken
+      parameters:
+      - description: E-mail и код
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.PasswordResetVerifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.PasswordResetVerifyResponse'
+        "400":
+          description: EMAIL_REQUIRED, INVALID_EMAIL_FORMAT, RESET_CODE_REQUIRED
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "401":
+          description: RESET_CODE_INVALID, RESET_CODE_EXPIRED, RESET_CODE_TOO_MANY_ATTEMPTS
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      summary: Проверка кода восстановления
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Создает учетную запись и возвращает пару access/refresh токенов
+      parameters:
+      - description: Данные пользователя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.AuthRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.TokenPair'
+        "400":
+          description: EMAIL_AND_PASSWORD_REQUIRED, EMAIL_REQUIRED, INVALID_EMAIL_FORMAT,
+            PASSWORD_REQUIRED, INVALID_PASSWORD_FORMAT
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "409":
+          description: EMAIL_ALREADY_EXISTS
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      summary: Регистрация пользователя
+      tags:
+      - auth
+  /users/me:
+    patch:
+      consumes:
+      - application/json
+      description: Обновляет имя, фамилию и/или e-mail текущего пользователя
+      parameters:
+      - description: Данные профиля
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.UserProfileResponse'
+        "400":
+          description: NO_FIELDS_TO_UPDATE, EMAIL_REQUIRED, INVALID_EMAIL_FORMAT
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "401":
+          description: AUTH_REQUIRED, INVALID_TOKEN
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "404":
+          description: USER_NOT_FOUND
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "409":
+          description: EMAIL_ALREADY_EXISTS
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Обновление профиля
+      tags:
+      - users
+  /users/me/password/change/confirm:
+    post:
+      consumes:
+      - application/json
+      description: Устанавливает новый пароль по changeToken
+      parameters:
+      - description: Change token и новый пароль
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.PasswordChangeConfirmRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: PASSWORD_REQUIRED, INVALID_PASSWORD_FORMAT, PASSWORD_CONFIRMATION_MISMATCH,
+            CHANGE_TOKEN_REQUIRED
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "401":
+          description: CHANGE_SESSION_INVALID, CHANGE_SESSION_EXPIRED
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "500":
+          description: REDIS_NOT_CONFIGURED
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Смена пароля
+      tags:
+      - users
+  /users/me/password/change/request:
+    post:
+      consumes:
+      - application/json
+      description: Отправляет код на e-mail текущего пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: AUTH_REQUIRED, INVALID_TOKEN
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "404":
+          description: USER_NOT_FOUND
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "429":
+          description: TOO_MANY_REQUESTS
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "500":
+          description: MAILER_NOT_CONFIGURED, REDIS_NOT_CONFIGURED
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Запрос кода смены пароля
+      tags:
+      - users
+  /users/me/password/change/verify:
+    post:
+      consumes:
+      - application/json
+      description: Проверяет код и возвращает changeToken
+      parameters:
+      - description: Код из письма
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.PasswordChangeVerifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.PasswordChangeVerifyResponse'
+        "400":
+          description: CHANGE_CODE_REQUIRED
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "401":
+          description: CHANGE_CODE_INVALID, CHANGE_CODE_TOO_MANY_ATTEMPTS, AUTH_REQUIRED,
+            INVALID_TOKEN
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "404":
+          description: USER_NOT_FOUND
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "500":
+          description: REDIS_NOT_CONFIGURED
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Проверка кода смены пароля
+      tags:
+      - users
+  /vitamins/catalog:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список витаминов из справочника
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/vitamins.CatalogItem'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+      summary: Каталог витаминов
+      tags:
+      - vitamins
+  /vitamins/reminders:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список напоминаний пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/vitamins.ReminderResponse'
+            type: array
+        "401":
+          description: AUTH_REQUIRED, INVALID_TOKEN
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Список напоминаний
+      tags:
+      - vitamins
+    post:
+      consumes:
+      - application/json
+      description: Создает пользовательский витамин с курсом, расписанием и настройками
+        уведомления
+      parameters:
+      - description: Данные напоминания
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/vitamins.CreateReminderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/vitamins.ReminderResponse'
+        "400":
+          description: NAME_REQUIRED, INVALID_FORM, INVALID_CONDITION, INVALID_DAYS,
+            INVALID_TIMES, START_DATE_REQUIRED, INVALID_DATE_FORMAT, INVALID_COURSE_DURATION,
+            TIMEZONE_REQUIRED
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "401":
+          description: AUTH_REQUIRED, INVALID_TOKEN
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "404":
+          description: CATALOG_NOT_FOUND
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Создать напоминание о витамине
+      tags:
+      - vitamins
+  /vitamins/reminders/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Мягко удаляет напоминание (is_active=false)
+      parameters:
+      - description: ID напоминания
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/vitamins.ReminderResponse'
+        "400":
+          description: INVALID_ID
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "401":
+          description: AUTH_REQUIRED, INVALID_TOKEN
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "404":
+          description: REMINDER_NOT_FOUND
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Удалить напоминание
+      tags:
+      - vitamins
+    get:
+      consumes:
+      - application/json
+      description: Возвращает подробную информацию о напоминании
+      parameters:
+      - description: ID напоминания
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/vitamins.ReminderResponse'
+        "400":
+          description: INVALID_ID
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "401":
+          description: AUTH_REQUIRED, INVALID_TOKEN
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "404":
+          description: REMINDER_NOT_FOUND
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Детали напоминания
+      tags:
+      - vitamins
+    patch:
+      consumes:
+      - application/json
+      description: Обновляет дозу, примечание, условие, расписание, курс и настройки
+        уведомлений
+      parameters:
+      - description: ID напоминания
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные для обновления
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/vitamins.UpdateReminderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/vitamins.ReminderResponse'
+        "400":
+          description: INVALID_ID, NO_FIELDS_TO_UPDATE, NAME_REQUIRED, INVALID_FORM,
+            INVALID_CONDITION, INVALID_DAYS, INVALID_TIMES, START_DATE_REQUIRED, INVALID_DATE_FORMAT,
+            INVALID_COURSE_DURATION, TIMEZONE_REQUIRED
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "401":
+          description: AUTH_REQUIRED, INVALID_TOKEN
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "404":
+          description: REMINDER_NOT_FOUND
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Обновить напоминание
+      tags:
+      - vitamins
+  /vitamins/reminders/{id}/disable:
+    post:
+      consumes:
+      - application/json
+      description: Устанавливает is_active=false
+      parameters:
+      - description: ID напоминания
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/vitamins.ReminderResponse'
+        "400":
+          description: INVALID_ID
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "401":
+          description: AUTH_REQUIRED, INVALID_TOKEN
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "404":
+          description: REMINDER_NOT_FOUND
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Отключить напоминание
+      tags:
+      - vitamins
+  /vitamins/reminders/{id}/enable:
+    post:
+      consumes:
+      - application/json
+      description: Устанавливает is_active=true
+      parameters:
+      - description: ID напоминания
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/vitamins.ReminderResponse'
+        "400":
+          description: INVALID_ID
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "401":
+          description: AUTH_REQUIRED, INVALID_TOKEN
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "404":
+          description: REMINDER_NOT_FOUND
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/vitamins.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Включить напоминание
+      tags:
+      - vitamins
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

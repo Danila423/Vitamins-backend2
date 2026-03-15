@@ -1,0 +1,1383 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API для регистрации и авторизации",
+        "title": "Vitamins API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "paths": {
+        "/auth/login": {
+            "post": {
+                "description": "Проверяет учетные данные и возвращает новую пару токенов",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Авторизация пользователя",
+                "parameters": [
+                    {
+                        "description": "Данные пользователя",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.AuthRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/auth.TokenPair"
+                        }
+                    },
+                    "400": {
+                        "description": "EMAIL_AND_PASSWORD_REQUIRED, EMAIL_REQUIRED, INVALID_EMAIL_FORMAT, PASSWORD_REQUIRED, INVALID_PASSWORD_FORMAT",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "INVALID_CREDENTIALS",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/password/reset/confirm": {
+            "post": {
+                "description": "Устанавливает новый пароль по resetToken",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Смена пароля",
+                "parameters": [
+                    {
+                        "description": "Reset token и новый пароль",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.PasswordResetConfirmRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "PASSWORD_REQUIRED, INVALID_PASSWORD_FORMAT, PASSWORD_CONFIRMATION_MISMATCH, RESET_TOKEN_REQUIRED",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "RESET_SESSION_INVALID, RESET_SESSION_EXPIRED",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/password/reset/request": {
+            "post": {
+                "description": "Отправляет код на e-mail через SMTP",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Запрос кода восстановления пароля",
+                "parameters": [
+                    {
+                        "description": "E-mail",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.PasswordResetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "EMAIL_REQUIRED, INVALID_EMAIL_FORMAT",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "TOO_MANY_REQUESTS",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/password/reset/verify": {
+            "post": {
+                "description": "Проверяет код и возвращает resetToken",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Проверка кода восстановления",
+                "parameters": [
+                    {
+                        "description": "E-mail и код",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.PasswordResetVerifyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/auth.PasswordResetVerifyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "EMAIL_REQUIRED, INVALID_EMAIL_FORMAT, RESET_CODE_REQUIRED",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "RESET_CODE_INVALID, RESET_CODE_EXPIRED, RESET_CODE_TOO_MANY_ATTEMPTS",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "description": "Создает учетную запись и возвращает пару access/refresh токенов",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Регистрация пользователя",
+                "parameters": [
+                    {
+                        "description": "Данные пользователя",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.AuthRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/auth.TokenPair"
+                        }
+                    },
+                    "400": {
+                        "description": "EMAIL_AND_PASSWORD_REQUIRED, EMAIL_REQUIRED, INVALID_EMAIL_FORMAT, PASSWORD_REQUIRED, INVALID_PASSWORD_FORMAT",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "EMAIL_ALREADY_EXISTS",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Обновляет имя, фамилию и/или e-mail текущего пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Обновление профиля",
+                "parameters": [
+                    {
+                        "description": "Данные профиля",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.UpdateProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/auth.UserProfileResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "NO_FIELDS_TO_UPDATE, EMAIL_REQUIRED, INVALID_EMAIL_FORMAT",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "AUTH_REQUIRED, INVALID_TOKEN",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "USER_NOT_FOUND",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "EMAIL_ALREADY_EXISTS",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me/password/change/confirm": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Устанавливает новый пароль по changeToken",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Смена пароля",
+                "parameters": [
+                    {
+                        "description": "Change token и новый пароль",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.PasswordChangeConfirmRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "PASSWORD_REQUIRED, INVALID_PASSWORD_FORMAT, PASSWORD_CONFIRMATION_MISMATCH, CHANGE_TOKEN_REQUIRED",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "CHANGE_SESSION_INVALID, CHANGE_SESSION_EXPIRED",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "REDIS_NOT_CONFIGURED",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me/password/change/request": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Отправляет код на e-mail текущего пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Запрос кода смены пароля",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "AUTH_REQUIRED, INVALID_TOKEN",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "USER_NOT_FOUND",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "TOO_MANY_REQUESTS",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "MAILER_NOT_CONFIGURED, REDIS_NOT_CONFIGURED",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me/password/change/verify": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Проверяет код и возвращает changeToken",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Проверка кода смены пароля",
+                "parameters": [
+                    {
+                        "description": "Код из письма",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.PasswordChangeVerifyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/auth.PasswordChangeVerifyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "CHANGE_CODE_REQUIRED",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "CHANGE_CODE_INVALID, CHANGE_CODE_TOO_MANY_ATTEMPTS, AUTH_REQUIRED, INVALID_TOKEN",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "USER_NOT_FOUND",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "REDIS_NOT_CONFIGURED",
+                        "schema": {
+                            "$ref": "#/definitions/auth.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/vitamins/catalog": {
+            "get": {
+                "description": "Возвращает список витаминов из справочника",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vitamins"
+                ],
+                "summary": "Каталог витаминов",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/vitamins.CatalogItem"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/vitamins/reminders": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список напоминаний пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vitamins"
+                ],
+                "summary": "Список напоминаний",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/vitamins.ReminderResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "AUTH_REQUIRED, INVALID_TOKEN",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Создает пользовательский витамин с курсом, расписанием и настройками уведомления",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vitamins"
+                ],
+                "summary": "Создать напоминание о витамине",
+                "parameters": [
+                    {
+                        "description": "Данные напоминания",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.CreateReminderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ReminderResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "NAME_REQUIRED, INVALID_FORM, INVALID_CONDITION, INVALID_DAYS, INVALID_TIMES, START_DATE_REQUIRED, INVALID_DATE_FORMAT, INVALID_COURSE_DURATION, TIMEZONE_REQUIRED",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "AUTH_REQUIRED, INVALID_TOKEN",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "CATALOG_NOT_FOUND",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/vitamins/reminders/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает подробную информацию о напоминании",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vitamins"
+                ],
+                "summary": "Детали напоминания",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID напоминания",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ReminderResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "INVALID_ID",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "AUTH_REQUIRED, INVALID_TOKEN",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "REMINDER_NOT_FOUND",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Мягко удаляет напоминание (is_active=false)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vitamins"
+                ],
+                "summary": "Удалить напоминание",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID напоминания",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ReminderResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "INVALID_ID",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "AUTH_REQUIRED, INVALID_TOKEN",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "REMINDER_NOT_FOUND",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Обновляет дозу, примечание, условие, расписание, курс и настройки уведомлений",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vitamins"
+                ],
+                "summary": "Обновить напоминание",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID напоминания",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные для обновления",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.UpdateReminderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ReminderResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "INVALID_ID, NO_FIELDS_TO_UPDATE, NAME_REQUIRED, INVALID_FORM, INVALID_CONDITION, INVALID_DAYS, INVALID_TIMES, START_DATE_REQUIRED, INVALID_DATE_FORMAT, INVALID_COURSE_DURATION, TIMEZONE_REQUIRED",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "AUTH_REQUIRED, INVALID_TOKEN",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "REMINDER_NOT_FOUND",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/vitamins/reminders/{id}/disable": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Устанавливает is_active=false",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vitamins"
+                ],
+                "summary": "Отключить напоминание",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID напоминания",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ReminderResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "INVALID_ID",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "AUTH_REQUIRED, INVALID_TOKEN",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "REMINDER_NOT_FOUND",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/vitamins/reminders/{id}/enable": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Устанавливает is_active=true",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vitamins"
+                ],
+                "summary": "Включить напоминание",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID напоминания",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ReminderResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "INVALID_ID",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "AUTH_REQUIRED, INVALID_TOKEN",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "REMINDER_NOT_FOUND",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/vitamins.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "auth.AuthRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.PasswordChangeConfirmRequest": {
+            "type": "object",
+            "properties": {
+                "changeToken": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "passwordConfirm": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.PasswordChangeVerifyRequest": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.PasswordChangeVerifyResponse": {
+            "type": "object",
+            "properties": {
+                "changeToken": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.PasswordResetConfirmRequest": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "passwordConfirm": {
+                    "type": "string"
+                },
+                "resetToken": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.PasswordResetRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.PasswordResetVerifyRequest": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.PasswordResetVerifyResponse": {
+            "type": "object",
+            "properties": {
+                "resetToken": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.TokenPair": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string"
+                },
+                "refreshToken": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.UpdateProfileRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "lastName": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.UserProfileResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "lastName": {
+                    "type": "string"
+                }
+            }
+        },
+        "vitamins.CatalogItem": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "compatibility_text": {
+                    "type": "string"
+                },
+                "contraindications_text": {
+                    "type": "string"
+                },
+                "default_condition": {
+                    "type": "string"
+                },
+                "default_unit": {
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "interaction_text": {
+                    "type": "string"
+                }
+            }
+        },
+        "vitamins.ContentOverridesInput": {
+            "type": "object",
+            "properties": {
+                "compatibility_text_override": {
+                    "type": "string"
+                },
+                "contraindications_text_override": {
+                    "type": "string"
+                },
+                "interaction_text_override": {
+                    "type": "string"
+                }
+            }
+        },
+        "vitamins.ContentOverridesResponse": {
+            "type": "object",
+            "properties": {
+                "compatibility_text_override": {
+                    "type": "string"
+                },
+                "contraindications_text_override": {
+                    "type": "string"
+                },
+                "interaction_text_override": {
+                    "type": "string"
+                }
+            }
+        },
+        "vitamins.CourseInput": {
+            "type": "object",
+            "properties": {
+                "duration_days": {
+                    "type": "integer"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "timezone": {
+                    "type": "string"
+                }
+            }
+        },
+        "vitamins.CourseResponse": {
+            "type": "object",
+            "properties": {
+                "end_date": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "timezone": {
+                    "type": "string"
+                }
+            }
+        },
+        "vitamins.CreateReminderRequest": {
+            "type": "object",
+            "properties": {
+                "catalog_id": {
+                    "type": "integer"
+                },
+                "condition": {
+                    "type": "string"
+                },
+                "content_overrides": {
+                    "$ref": "#/definitions/vitamins.ContentOverridesInput"
+                },
+                "course": {
+                    "$ref": "#/definitions/vitamins.CourseInput"
+                },
+                "dose": {
+                    "type": "string"
+                },
+                "form": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "notification_preferences": {
+                    "$ref": "#/definitions/vitamins.NotificationPreferencesInput"
+                },
+                "schedule": {
+                    "$ref": "#/definitions/vitamins.ScheduleInput"
+                }
+            }
+        },
+        "vitamins.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "vitamins.NotificationPreferencesInput": {
+            "type": "object",
+            "properties": {
+                "include_compatibility": {
+                    "type": "boolean"
+                },
+                "include_condition": {
+                    "type": "boolean"
+                },
+                "include_contraindications": {
+                    "type": "boolean"
+                },
+                "include_dose": {
+                    "type": "boolean"
+                },
+                "include_frequency": {
+                    "type": "boolean"
+                },
+                "include_interaction": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "vitamins.NotificationPreferencesResponse": {
+            "type": "object",
+            "properties": {
+                "include_compatibility": {
+                    "type": "boolean"
+                },
+                "include_condition": {
+                    "type": "boolean"
+                },
+                "include_contraindications": {
+                    "type": "boolean"
+                },
+                "include_dose": {
+                    "type": "boolean"
+                },
+                "include_frequency": {
+                    "type": "boolean"
+                },
+                "include_interaction": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "vitamins.ReminderResponse": {
+            "type": "object",
+            "properties": {
+                "catalog": {
+                    "$ref": "#/definitions/vitamins.CatalogItem"
+                },
+                "catalog_id": {
+                    "type": "integer"
+                },
+                "condition": {
+                    "type": "string"
+                },
+                "content_overrides": {
+                    "$ref": "#/definitions/vitamins.ContentOverridesResponse"
+                },
+                "course": {
+                    "$ref": "#/definitions/vitamins.CourseResponse"
+                },
+                "dose": {
+                    "type": "string"
+                },
+                "form": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "notification_preferences": {
+                    "$ref": "#/definitions/vitamins.NotificationPreferencesResponse"
+                },
+                "schedule": {
+                    "$ref": "#/definitions/vitamins.ScheduleResponse"
+                }
+            }
+        },
+        "vitamins.ScheduleInput": {
+            "type": "object",
+            "properties": {
+                "days": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "times": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "vitamins.ScheduleResponse": {
+            "type": "object",
+            "properties": {
+                "days": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "times": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "vitamins.UpdateReminderRequest": {
+            "type": "object",
+            "properties": {
+                "condition": {
+                    "type": "string"
+                },
+                "content_overrides": {
+                    "$ref": "#/definitions/vitamins.ContentOverridesInput"
+                },
+                "course": {
+                    "$ref": "#/definitions/vitamins.CourseInput"
+                },
+                "dose": {
+                    "type": "string"
+                },
+                "form": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "notification_preferences": {
+                    "$ref": "#/definitions/vitamins.NotificationPreferencesInput"
+                },
+                "schedule": {
+                    "$ref": "#/definitions/vitamins.ScheduleInput"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}
