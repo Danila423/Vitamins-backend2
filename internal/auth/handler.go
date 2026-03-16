@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"io"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -29,6 +30,11 @@ type PasswordResetConfirmRequest struct {
 
 type PasswordResetVerifyResponse struct {
 	ResetToken string `json:"resetToken"`
+}
+
+type RefreshTokenRequest struct {
+	RefreshToken      string `json:"refreshToken"`
+	RefreshTokenSnake string `json:"refresh_token"`
 }
 
 type UpdateProfileRequest struct {
@@ -151,6 +157,52 @@ func (h *Handler) Login(c *gin.Context) {
 			send(c, 400, "INVALID_PASSWORD_FORMAT", "Пароль должен содержать минимум 8 символов и цифру")
 		case ErrInvalidCredentials:
 			send(c, 401, "INVALID_CREDENTIALS", "Неверный e-mail или пароль")
+		default:
+			send(c, 500, "INTERNAL_ERROR", "Что-то пошло не так.")
+		}
+		return
+	}
+	c.JSON(200, t)
+}
+
+// Refresh godoc
+// @Summary      Обновление токенов
+// @Description  Обновляет access token по refresh token из Authorization Bearer и/или тела запроса
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body RefreshTokenRequest false "Refresh token (refreshToken или refresh_token)"
+// @Param        Authorization header string false "Bearer <refreshToken>"
+// @Success      200 {object} TokenPair
+// @Failure      400 {object} ErrorResponse "BAD_REQUEST"
+// @Failure      401 {object} ErrorResponse "INVALID_REFRESH_TOKEN"
+// @Failure      500 {object} ErrorResponse
+// @Router       /auth/refresh [post]
+func (h *Handler) Refresh(c *gin.Context) {
+	var r RefreshTokenRequest
+	if err := c.ShouldBindJSON(&r); err != nil && !errors.Is(err, io.EOF) {
+		send(c, 400, "BAD_REQUEST", "Неверный формат запроса")
+		return
+	}
+
+	token := extractBearerToken(c.GetHeader("Authorization"))
+	if token == "" {
+		token = strings.TrimSpace(r.RefreshToken)
+	}
+	if token == "" {
+		token = strings.TrimSpace(r.RefreshTokenSnake)
+	}
+	if token == "" {
+		send(c, 401, "INVALID_REFRESH_TOKEN", "Неверный или истекший refresh token")
+		return
+	}
+
+	ctx := c.Request.Context()
+	t, err := h.s.Refresh(ctx, token)
+	if err != nil {
+		switch err {
+		case ErrInvalidCredentials:
+			send(c, 401, "INVALID_REFRESH_TOKEN", "Неверный или истекший refresh token")
 		default:
 			send(c, 500, "INTERNAL_ERROR", "Что-то пошло не так.")
 		}
@@ -514,4 +566,16 @@ func (h *Handler) ConfirmPasswordChange(c *gin.Context) {
 		return
 	}
 	c.Status(200)
+}
+
+func extractBearerToken(authHeader string) string {
+	value := strings.TrimSpace(authHeader)
+	if value == "" {
+		return ""
+	}
+	const prefix = "Bearer "
+	if !strings.HasPrefix(value, prefix) {
+		return ""
+	}
+	return strings.TrimSpace(strings.TrimPrefix(value, prefix))
 }

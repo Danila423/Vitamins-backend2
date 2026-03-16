@@ -9,10 +9,6 @@ RUN go mod download
 # 2. Кладём весь код
 COPY . .
 
-# 2.1 Генерируем Swagger (чтобы новые ручки появились в UI)
-RUN go install github.com/swaggo/swag/cmd/swag@v1.8.12
-RUN /go/bin/swag init -g cmd/api/main.go -o docs
-
 # 3. Собираем
 RUN CGO_ENABLED=0 GOOS=linux go build -o api ./cmd/api
 

@@ -1,4 +1,63 @@
 definitions:
+  analytics.BatchRequest:
+    properties:
+      batch_id:
+        type: string
+      events:
+        items:
+          $ref: '#/definitions/analytics.EventInput'
+        type: array
+      sent_at:
+        type: string
+    type: object
+  analytics.ConsentRequest:
+    properties:
+      consent:
+        type: boolean
+    type: object
+  analytics.ConsentResponse:
+    properties:
+      consent:
+        type: boolean
+    type: object
+  analytics.ErrorResponse:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+    type: object
+  analytics.EventInput:
+    properties:
+      anonymous_id:
+        type: string
+      app_version:
+        type: string
+      event_id:
+        type: string
+      event_name:
+        type: string
+      occurred_at:
+        type: string
+      platform:
+        type: string
+      properties:
+        additionalProperties: {}
+        type: object
+      request_id:
+        type: string
+      session_id:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  analytics.IngestResponse:
+    properties:
+      accepted:
+        type: integer
+      deduplicated:
+        type: integer
+    type: object
   auth.AuthRequest:
     properties:
       email:
@@ -56,6 +115,13 @@ definitions:
   auth.PasswordResetVerifyResponse:
     properties:
       resetToken:
+        type: string
+    type: object
+  auth.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+      refreshToken:
         type: string
     type: object
   auth.TokenPair:
@@ -282,6 +348,147 @@ info:
   title: Vitamins API
   version: "1.0"
 paths:
+  /admin/analytics/export:
+    get:
+      parameters:
+      - description: RFC3339 from
+        in: query
+        name: from
+        type: string
+      - description: RFC3339 to
+        in: query
+        name: to
+        type: string
+      - description: event_name
+        in: query
+        name: event
+        type: string
+      - description: user_id
+        in: query
+        name: user_id
+        type: integer
+      - description: csv|jsonl
+        in: query
+        name: format
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      - description: offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - text/csv
+      - application/json
+      responses:
+        "200":
+          description: CSV/JSONL
+          schema:
+            type: string
+        "401":
+          description: ADMIN_REQUIRED
+          schema:
+            $ref: '#/definitions/analytics.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/analytics.ErrorResponse'
+      summary: Экспорт аналитики
+      tags:
+      - admin
+  /analytics/consent:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/analytics.ConsentResponse'
+        "401":
+          description: AUTH_REQUIRED, INVALID_TOKEN
+          schema:
+            $ref: '#/definitions/analytics.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/analytics.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получить согласие на аналитику
+      tags:
+      - analytics
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Согласие
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/analytics.ConsentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/analytics.ConsentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/analytics.ErrorResponse'
+        "401":
+          description: AUTH_REQUIRED, INVALID_TOKEN
+          schema:
+            $ref: '#/definitions/analytics.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Установить согласие на аналитику
+      tags:
+      - analytics
+  /analytics/events:
+    post:
+      consumes:
+      - application/json
+      description: Принимает батч аналитических событий
+      parameters:
+      - description: Batch событий
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/analytics.BatchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/analytics.IngestResponse'
+        "400":
+          description: EMPTY_BATCH, BATCH_TOO_LARGE, INVALID_EVENT_ID, INVALID_OCCURRED_AT,
+            INVALID_EVENT_NAME, INVALID_SESSION_ID, INVALID_ANONYMOUS_ID, ANONYMOUS_ID_REQUIRED
+          schema:
+            $ref: '#/definitions/analytics.ErrorResponse'
+        "401":
+          description: INVALID_TOKEN
+          schema:
+            $ref: '#/definitions/analytics.ErrorResponse'
+        "403":
+          description: CONSENT_REQUIRED
+          schema:
+            $ref: '#/definitions/analytics.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/analytics.ErrorResponse'
+      summary: Прием аналитических событий
+      tags:
+      - analytics
   /auth/login:
     post:
       consumes:
@@ -371,6 +578,10 @@ paths:
           description: EMAIL_REQUIRED, INVALID_EMAIL_FORMAT
           schema:
             $ref: '#/definitions/auth.ErrorResponse'
+        "404":
+          description: USER_NOT_FOUND
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
         "429":
           description: TOO_MANY_REQUESTS
           schema:
@@ -416,6 +627,44 @@ paths:
       summary: Проверка кода восстановления
       tags:
       - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Обновляет access token по refresh token из Authorization Bearer
+        и/или тела запроса
+      parameters:
+      - description: Refresh token (refreshToken или refresh_token)
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/auth.RefreshTokenRequest'
+      - description: Bearer <refreshToken>
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.TokenPair'
+        "400":
+          description: BAD_REQUEST
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "401":
+          description: INVALID_REFRESH_TOKEN
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      summary: Обновление токенов
+      tags:
+      - auth
   /auth/register:
     post:
       consumes:
@@ -452,6 +701,34 @@ paths:
       tags:
       - auth
   /users/me:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает информацию о текущем пользователе
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.UserProfileResponse'
+        "401":
+          description: AUTH_REQUIRED, INVALID_TOKEN
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "404":
+          description: USER_NOT_FOUND
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Профиль пользователя
+      tags:
+      - users
     patch:
       consumes:
       - application/json
