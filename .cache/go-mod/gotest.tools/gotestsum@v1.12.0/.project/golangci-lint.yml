@@ -1,0 +1,54 @@
+linters-settings:
+  goconst:
+    min-len: 2
+    min-occurrences: 4
+  lll:
+    line-length: 120
+
+issues:
+  exclude-use-default: false
+  exclude-rules:
+    - linters: [revive]
+      text: 'should have comment .*or be unexported'
+    - linters: [revive]
+      text: 'package-comments: should have a package comment'
+    - linters: [stylecheck]
+      text: 'ST1000: at least one file in a package should have a package comment'
+    - linters: [errcheck]
+      text: 'Error return value of `.*\.WriteString` is not checked'
+    - linters: [unparam]
+      text: 'result .* is always'
+    - linters: [unparam]
+      text: 'always receives'
+    # Remove once go1.16 is dropped
+    - linters: staticcheck
+      text: 'env.Patch is deprecated'
+
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - deadcode
+    - depguard
+    - errcheck
+    - goconst
+    - gofmt
+    - goimports
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - lll
+    - misspell
+    - nakedret
+    - prealloc
+    - revive
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace

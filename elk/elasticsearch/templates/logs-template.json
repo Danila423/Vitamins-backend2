@@ -1,0 +1,90 @@
+{
+  "index_patterns": [
+    "vitamins-logs-*"
+  ],
+  "template": {
+    "settings": {
+      "index.lifecycle.name": "logs-hot-delete-14d",
+      "number_of_shards": 1,
+      "number_of_replicas": 0
+    },
+    "mappings": {
+      "dynamic": true,
+      "properties": {
+        "@timestamp": { "type": "date" },
+        "message": { "type": "text" },
+        "log": {
+          "properties": {
+            "level": { "type": "keyword" }
+          }
+        },
+        "service": {
+          "properties": {
+            "name": { "type": "keyword" },
+            "version": { "type": "keyword" },
+            "environment": { "type": "keyword" }
+          }
+        },
+        "event": {
+          "properties": {
+            "dataset": { "type": "keyword" },
+            "duration": { "type": "long" },
+            "duration_ms": { "type": "long" }
+          }
+        },
+        "channel": { "type": "keyword" },
+        "operation": { "type": "keyword" },
+        "request": {
+          "properties": {
+            "id": { "type": "keyword" }
+          }
+        },
+        "trace": {
+          "properties": {
+            "id": { "type": "keyword" }
+          }
+        },
+        "span": {
+          "properties": {
+            "id": { "type": "keyword" }
+          }
+        },
+        "user": {
+          "properties": {
+            "id": { "type": "keyword" }
+          }
+        },
+        "url": {
+          "properties": {
+            "path": { "type": "keyword" },
+            "route": { "type": "keyword" }
+          }
+        },
+        "http": {
+          "properties": {
+            "request": {
+              "properties": {
+                "method": { "type": "keyword" }
+              }
+            },
+            "response": {
+              "properties": {
+                "status_code": { "type": "integer" }
+              }
+            }
+          }
+        },
+        "error": {
+          "properties": {
+            "message": { "type": "text" },
+            "code": { "type": "keyword" }
+          }
+        }
+      }
+    }
+  },
+  "priority": 200,
+  "_meta": {
+    "description": "Template for vitamins backend structured logs"
+  }
+}

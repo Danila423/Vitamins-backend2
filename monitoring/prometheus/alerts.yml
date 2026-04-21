@@ -1,0 +1,91 @@
+groups:
+  - name: vitamins-api
+    rules:
+      - alert: VitaminsApiDown
+        expr: up{job="vitamins-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: backend
+          service: vitamins-backend
+        annotations:
+          summary: "Vitamins API is down"
+          description: "Prometheus cannot scrape vitamins API for 2 minutes."
+          runbook_url: "https://runbooks.local/vitamins/api-down"
+
+      - alert: VitaminsApiHigh5xxRate
+        expr: |
+          (
+            sum(rate(vitamins_http_requests_total{status_class="5xx"}[5m]))
+            /
+            clamp_min(sum(rate(vitamins_http_requests_total[5m])), 0.001)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+          service: vitamins-backend
+        annotations:
+          summary: "High 5xx error rate"
+          description: "5xx ratio is above 5% for 5 minutes."
+          runbook_url: "https://runbooks.local/vitamins/high-5xx"
+
+      - alert: VitaminsApiHighLatencyP95
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (rate(vitamins_http_request_duration_seconds_bucket[5m]))
+          ) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+          service: vitamins-backend
+        annotations:
+          summary: "High API latency p95"
+          description: "HTTP p95 latency is above 800ms for 10 minutes."
+          runbook_url: "https://runbooks.local/vitamins/high-latency"
+
+      - alert: VitaminsAuthFailureSpike
+        expr: |
+          (
+            sum(rate(vitamins_auth_attempts_total{result="failure"}[10m]))
+            /
+            clamp_min(sum(rate(vitamins_auth_attempts_total[10m])), 0.001)
+          ) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+          service: vitamins-backend
+        annotations:
+          summary: "Auth failures spiked"
+          description: "Auth failure ratio exceeds 50% for 10 minutes."
+          runbook_url: "https://runbooks.local/vitamins/auth-failures"
+
+  - name: vitamins-infra
+    rules:
+      - alert: PostgresExporterDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+          service: vitamins-backend
+        annotations:
+          summary: "Postgres exporter is down"
+          description: "Prometheus cannot scrape postgres-exporter."
+          runbook_url: "https://runbooks.local/vitamins/postgres-exporter"
+
+      - alert: RedisExporterDown
+        expr: up{job="redis-exporter"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+          service: vitamins-backend
+        annotations:
+          summary: "Redis exporter is down"
+          description: "Prometheus cannot scrape redis-exporter."
+          runbook_url: "https://runbooks.local/vitamins/redis-exporter"
+

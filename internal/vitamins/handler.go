@@ -2,11 +2,13 @@ package vitamins
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"vitamins-backend_2/internal/auth"
+	appLogger "vitamins-backend_2/internal/logger"
 )
 
 type Handler struct {
@@ -19,6 +21,10 @@ func NewHandler(s *Service) *Handler {
 
 func send(c *gin.Context, code int, k, m string) {
 	c.JSON(code, ErrorResponse{Code: k, Message: m})
+}
+
+func logWithContext(c *gin.Context, channel string) *slog.Logger {
+	return appLogger.WithContext(slog.Default(), c.Request.Context()).With("channel", channel)
 }
 
 // ListCatalog godoc
@@ -71,6 +77,11 @@ func (h *Handler) CreateReminder(c *gin.Context) {
 		h.handleError(c, err)
 		return
 	}
+	logWithContext(c, "audit").InfoContext(ctx, "reminder created",
+		"operation", "vitamins.reminder.create",
+		"user_id", userID,
+		"reminder_id", resp.ID,
+	)
 	c.JSON(200, resp)
 }
 
@@ -169,6 +180,11 @@ func (h *Handler) UpdateReminder(c *gin.Context) {
 		h.handleError(c, err)
 		return
 	}
+	logWithContext(c, "audit").InfoContext(ctx, "reminder updated",
+		"operation", "vitamins.reminder.update",
+		"user_id", userID,
+		"reminder_id", resp.ID,
+	)
 	c.JSON(200, resp)
 }
 
@@ -202,6 +218,11 @@ func (h *Handler) DeleteReminder(c *gin.Context) {
 		h.handleError(c, err)
 		return
 	}
+	logWithContext(c, "audit").InfoContext(ctx, "reminder deleted",
+		"operation", "vitamins.reminder.delete",
+		"user_id", userID,
+		"reminder_id", resp.ID,
+	)
 	c.JSON(200, resp)
 }
 
@@ -235,6 +256,11 @@ func (h *Handler) EnableReminder(c *gin.Context) {
 		h.handleError(c, err)
 		return
 	}
+	logWithContext(c, "audit").InfoContext(ctx, "reminder enabled",
+		"operation", "vitamins.reminder.enable",
+		"user_id", userID,
+		"reminder_id", resp.ID,
+	)
 	c.JSON(200, resp)
 }
 
@@ -268,6 +294,11 @@ func (h *Handler) DisableReminder(c *gin.Context) {
 		h.handleError(c, err)
 		return
 	}
+	logWithContext(c, "audit").InfoContext(ctx, "reminder disabled",
+		"operation", "vitamins.reminder.disable",
+		"user_id", userID,
+		"reminder_id", resp.ID,
+	)
 	c.JSON(200, resp)
 }
 
@@ -298,6 +329,10 @@ func (h *Handler) handleError(c *gin.Context, err error) {
 	case errors.Is(err, ErrNoFieldsToUpdate):
 		send(c, http.StatusBadRequest, "NO_FIELDS_TO_UPDATE", "Нечего обновлять")
 	default:
+		logWithContext(c, "app").ErrorContext(c.Request.Context(), "vitamins handler failed",
+			"operation", "vitamins.handler.error",
+			"error", err.Error(),
+		)
 		send(c, http.StatusInternalServerError, "INTERNAL_ERROR", "Что-то пошло не так.")
 	}
 }

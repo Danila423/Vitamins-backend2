@@ -1,0 +1,3 @@
+./deltas.go
+./gojsondiff.go
+./unmarshaler.go

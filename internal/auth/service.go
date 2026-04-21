@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log/slog"
 	"math/big"
 	"strconv"
 	"strings"
@@ -16,6 +17,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/crypto/bcrypt"
 	"vitamins-backend_2/internal/db"
+	appLogger "vitamins-backend_2/internal/logger"
 )
 
 var (
@@ -144,37 +146,42 @@ func (s *Service) RequestPasswordReset(ctx context.Context, email string) error 
 		return ErrRedisNotConfigured
 	}
 	normEmail := strings.ToLower(email)
+	log := appLogger.WithContext(slog.Default(), ctx).With(
+		"channel", "app",
+		"operation", "auth.password_reset.request",
+		"user.email_masked", appLogger.MaskEmail(normEmail),
+	)
 	limited, err := s.redis.SetNX(ctx, rateLimitKey(normEmail), "1", s.resetCfg.RateLimit)
 	if err != nil {
-		fmt.Printf("password reset: rate limit set error: %v\n", err)
+		log.Error("password reset rate limit set failed", "error", err.Error())
 		return err
 	}
 	if !limited {
-		fmt.Printf("password reset: rate limit hit for %s\n", normEmail)
+		log.Warn("password reset rate limit hit")
 		return ErrTooManyRequests
 	}
 	if _, err := s.q.GetUserByEmail(ctx, normEmail); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			fmt.Printf("password reset: user not found for %s\n", normEmail)
+			log.Warn("password reset user not found")
 			return ErrUserNotFound
 		}
-		fmt.Printf("password reset: db lookup error: %v\n", err)
+		log.Error("password reset db lookup failed", "error", err.Error())
 		return err
 	}
 	code, err := generateNumericCode(6)
 	if err != nil {
-		fmt.Printf("password reset: code generation error: %v\n", err)
+		log.Error("password reset code generation failed", "error", err.Error())
 		return err
 	}
 	codeHash := hashToken(code)
 	codeKey := resetCodeKey(normEmail)
 	if err := s.redis.Set(ctx, codeKey, codeHash, s.resetCfg.CodeTTL); err != nil {
-		fmt.Printf("password reset: redis set code error: %v\n", err)
+		log.Error("password reset cache write failed", "error", err.Error())
 		return err
 	}
 	_ = s.redis.Set(ctx, resetCodeAttemptsKey(normEmail), "0", s.resetCfg.CodeTTL)
 	if err := s.mailer.SendPasswordResetCode(ctx, normEmail, code); err != nil {
-		fmt.Printf("password reset: smtp send error: %v\n", err)
+		log.Error("password reset mail send failed", "error", err.Error())
 		_, _ = s.redis.Del(ctx, codeKey, resetCodeAttemptsKey(normEmail))
 		return err
 	}

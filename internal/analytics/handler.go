@@ -3,11 +3,13 @@ package analytics
 import (
 	"encoding/csv"
 	"errors"
+	"log/slog"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"vitamins-backend_2/internal/auth"
+	appLogger "vitamins-backend_2/internal/logger"
 )
 
 type Handler struct {
@@ -22,6 +24,10 @@ func NewHandler(s *Service, jwt *auth.JWTManager, adminToken string) *Handler {
 
 func send(c *gin.Context, code int, k, m string) {
 	c.JSON(code, ErrorResponse{Code: k, Message: m})
+}
+
+func logWithContext(c *gin.Context, channel string) *slog.Logger {
+	return appLogger.WithContext(slog.Default(), c.Request.Context()).With("channel", channel)
 }
 
 // IngestEvents godoc
@@ -53,6 +59,11 @@ func (h *Handler) IngestEvents(c *gin.Context) {
 		h.handleError(c, err)
 		return
 	}
+	logWithContext(c, "app").InfoContext(c.Request.Context(), "analytics events ingested",
+		"operation", "analytics.ingest",
+		"accepted", resp.Accepted,
+		"deduplicated", resp.Deduplicated,
+	)
 	c.JSON(200, resp)
 }
 
@@ -79,9 +90,19 @@ func (h *Handler) SetConsent(c *gin.Context) {
 		return
 	}
 	if err := h.s.SetConsent(c.Request.Context(), userID, req.Consent); err != nil {
+		logWithContext(c, "app").ErrorContext(c.Request.Context(), "analytics consent update failed",
+			"operation", "analytics.consent.set",
+			"user_id", userID,
+			"error", err.Error(),
+		)
 		send(c, 500, "INTERNAL_ERROR", "Что-то пошло не так.")
 		return
 	}
+	logWithContext(c, "audit").InfoContext(c.Request.Context(), "analytics consent updated",
+		"operation", "analytics.consent.set",
+		"user_id", userID,
+		"consent", req.Consent,
+	)
 	c.JSON(200, ConsentResponse{Consent: req.Consent})
 }
 
@@ -102,6 +123,11 @@ func (h *Handler) GetConsent(c *gin.Context) {
 	}
 	consent, err := h.s.GetConsent(c.Request.Context(), userID)
 	if err != nil {
+		logWithContext(c, "app").ErrorContext(c.Request.Context(), "analytics consent read failed",
+			"operation", "analytics.consent.get",
+			"user_id", userID,
+			"error", err.Error(),
+		)
 		send(c, 500, "INTERNAL_ERROR", "Что-то пошло не так.")
 		return
 	}
@@ -145,9 +171,18 @@ func (h *Handler) Export(c *gin.Context) {
 
 	rows, err := h.s.Export(c.Request.Context(), filter)
 	if err != nil {
+		logWithContext(c, "app").ErrorContext(c.Request.Context(), "analytics export failed",
+			"operation", "analytics.export",
+			"error", err.Error(),
+		)
 		send(c, 500, "INTERNAL_ERROR", "Что-то пошло не так.")
 		return
 	}
+	logWithContext(c, "audit").InfoContext(c.Request.Context(), "analytics exported",
+		"operation", "analytics.export",
+		"rows", len(rows),
+		"format", format,
+	)
 
 	switch format {
 	case "csv":
@@ -225,6 +260,10 @@ func (h *Handler) handleError(c *gin.Context, err error) {
 	case errors.Is(err, ErrUserNotFound):
 		send(c, 404, "USER_NOT_FOUND", "Пользователь не найден")
 	default:
+		logWithContext(c, "app").ErrorContext(c.Request.Context(), "analytics handler failed",
+			"operation", "analytics.handler.error",
+			"error", err.Error(),
+		)
 		send(c, 500, "INTERNAL_ERROR", "Что-то пошло не так.")
 	}
 }

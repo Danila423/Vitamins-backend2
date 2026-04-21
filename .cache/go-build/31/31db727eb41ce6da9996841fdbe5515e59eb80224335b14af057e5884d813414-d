@@ -1,0 +1,6 @@
+./doc.go
+./dotformat.go
+./execution.go
+./format.go
+./pkgpathprefix.go
+./summary.go

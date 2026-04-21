@@ -1,0 +1,3 @@
+./term_linux.go
+./term_unix.go
+./watch.go

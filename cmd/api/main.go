@@ -11,11 +11,13 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/redis/go-redis/v9"
 
 	swaggerFiles "github.com/swaggo/files"
@@ -27,17 +29,27 @@ import (
 	"vitamins-backend_2/internal/cache"
 	"vitamins-backend_2/internal/config"
 	"vitamins-backend_2/internal/db"
+	"vitamins-backend_2/internal/logger"
 	"vitamins-backend_2/internal/mailer"
+	"vitamins-backend_2/internal/metrics"
 	"vitamins-backend_2/internal/vitamins"
 )
 
 func main() {
 	cfg := config.Load()
+	appLogger := logger.New(logger.Config{
+		Level:          cfg.LogLevel,
+		Environment:    cfg.Environment,
+		ServiceName:    cfg.ServiceName,
+		ServiceVersion: cfg.ServiceVersion,
+	})
+	slog.SetDefault(appLogger)
 
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, cfg.DatabaseURL)
 	if err != nil {
-		log.Fatalf("pg connect: %v", err)
+		appLogger.Error("database connect failed", "operation", "bootstrap.db_connect", "error", err.Error())
+		os.Exit(1)
 	}
 	defer pool.Close()
 
@@ -71,13 +83,19 @@ func main() {
 
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
-	r := gin.Default()
+	r := gin.New()
+	r.Use(logger.RequestIDMiddleware())
+	r.Use(metrics.Middleware())
+	r.Use(logger.RequestLoggingMiddleware(appLogger))
+	r.Use(logger.ErrorLoggingMiddleware(appLogger))
+	r.Use(logger.RecoveryMiddleware(appLogger))
 
 	// Swagger РОУТ – именно на r, не в /api/v1
 	r.GET("/swagger", func(c *gin.Context) {
 		c.Redirect(http.StatusTemporaryRedirect, "/swagger/index.html")
 	})
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	r.GET("/metrics", gin.WrapH(promhttp.HandlerFor(metrics.Registry(), promhttp.HandlerOpts{})))
 
 	api := r.Group("/api/v1")
 	{
@@ -130,6 +148,8 @@ func main() {
 		}
 	}
 
-	log.Println("running on :" + cfg.HTTPPort)
-	r.Run(":" + cfg.HTTPPort)
+	appLogger.Info("http server starting", "operation", "bootstrap.http_start", "http.port", cfg.HTTPPort)
+	if err := r.Run(":" + cfg.HTTPPort); err != nil {
+		appLogger.Error("http server stopped", "operation", "bootstrap.http_start", "error", err.Error())
+	}
 }

@@ -661,8 +661,6 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "API для регистрации и авторизации",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	LeftDelim:        "{{",
-	RightDelim:       "}}",
 }
 
 func init() {

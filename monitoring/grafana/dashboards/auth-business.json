@@ -1,0 +1,58 @@
+{
+  "title": "Auth / Business",
+  "uid": "vitamins-auth-business",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "15s",
+  "time": { "from": "now-24h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Auth volume by operation",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "sum(rate(vitamins_auth_attempts_total[5m])) by (operation)", "legendFormat": "{{operation}}" }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Auth success vs failure",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        { "expr": "sum(rate(vitamins_auth_attempts_total{result=\"success\"}[5m])) by (operation)", "legendFormat": "{{operation}} success" },
+        { "expr": "sum(rate(vitamins_auth_attempts_total{result=\"failure\"}[5m])) by (operation)", "legendFormat": "{{operation}} failure" }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Auth failure ratio",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(vitamins_auth_attempts_total{result=\"failure\"}[10m])) by (operation) / clamp_min(sum(rate(vitamins_auth_attempts_total[10m])) by (operation), 0.001)",
+          "legendFormat": "{{operation}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Auth endpoint latency p95",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(vitamins_http_request_duration_seconds_bucket{route=~\"/api/v1/auth/(login|register|refresh)\"}[5m])) by (route, le))",
+          "legendFormat": "{{route}}"
+        }
+      ]
+    }
+  ]
+}
+

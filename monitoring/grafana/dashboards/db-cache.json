@@ -1,0 +1,43 @@
+{
+  "title": "DB / Cache",
+  "uid": "vitamins-db-cache",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Postgres up",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [{ "expr": "up{job=\"postgres-exporter\"}", "legendFormat": "postgres-exporter" }]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Redis up",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [{ "expr": "up{job=\"redis-exporter\"}", "legendFormat": "redis-exporter" }]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Postgres active connections",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [{ "expr": "pg_stat_database_numbackends{datname=\"vitamins\"}", "legendFormat": "connections" }]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Redis connected clients",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [{ "expr": "redis_connected_clients", "legendFormat": "clients" }]
+    }
+  ]
+}
+

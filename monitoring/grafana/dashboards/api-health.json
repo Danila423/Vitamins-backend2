@@ -1,0 +1,76 @@
+{
+  "title": "API Health",
+  "uid": "vitamins-api-health",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "15s",
+  "time": { "from": "now-6h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Requests per second",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [{ "expr": "sum(rate(vitamins_http_requests_total[5m]))", "legendFormat": "rps" }]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "4xx / 5xx rate",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        { "expr": "sum(rate(vitamins_http_requests_total{status_class=\"4xx\"}[5m]))", "legendFormat": "4xx" },
+        { "expr": "sum(rate(vitamins_http_requests_total{status_class=\"5xx\"}[5m]))", "legendFormat": "5xx" }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Latency p50/p95/p99",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(vitamins_http_request_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p50" },
+        { "expr": "histogram_quantile(0.95, sum(rate(vitamins_http_request_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p95" },
+        { "expr": "histogram_quantile(0.99, sum(rate(vitamins_http_request_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p99" }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "In-flight requests",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [{ "expr": "vitamins_http_requests_in_flight", "legendFormat": "in_flight" }]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Top routes by latency (p95)",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "targets": [
+        {
+          "expr": "topk(10, histogram_quantile(0.95, sum(rate(vitamins_http_request_duration_seconds_bucket[5m])) by (route, le)))",
+          "legendFormat": "{{route}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Top routes by 5xx rate",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "targets": [
+        {
+          "expr": "topk(10, sum(rate(vitamins_http_requests_total{status_class=\"5xx\"}[5m])) by (route))",
+          "legendFormat": "{{route}}"
+        }
+      ]
+    }
+  ]
+}
+

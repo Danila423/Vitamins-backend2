@@ -3,9 +3,12 @@ package auth
 import (
 	"errors"
 	"io"
+	"log/slog"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	appLogger "vitamins-backend_2/internal/logger"
+	"vitamins-backend_2/internal/metrics"
 )
 
 type AuthRequest struct {
@@ -69,12 +72,20 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
-type Handler struct{ s *Service }
+type Handler struct{ s ServiceAPI }
 
-func NewHandler(s *Service) *Handler { return &Handler{s} }
+func NewHandler(s ServiceAPI) *Handler { return &Handler{s} }
 
 func send(c *gin.Context, code int, k, m string) {
 	c.JSON(code, ErrorResponse{Code: k, Message: m})
+}
+
+func logApp(c *gin.Context) *slog.Logger {
+	return appLogger.WithContext(slog.Default(), c.Request.Context()).With("channel", "app")
+}
+
+func logAudit(c *gin.Context) *slog.Logger {
+	return appLogger.WithContext(slog.Default(), c.Request.Context()).With("channel", "audit")
 }
 
 // Register godoc
@@ -92,16 +103,19 @@ func send(c *gin.Context, code int, k, m string) {
 func (h *Handler) Register(c *gin.Context) {
 	var r AuthRequest
 	if err := c.ShouldBindJSON(&r); err != nil {
+		metrics.ObserveAuth("register", "failure")
 		send(c, 400, "BAD_REQUEST", "Неверный формат запроса")
 		return
 	}
 	if r.Email == "" && r.Password == "" {
+		metrics.ObserveAuth("register", "failure")
 		send(c, 400, "EMAIL_AND_PASSWORD_REQUIRED", "Введите e-mail и пароль")
 		return
 	}
 	ctx := c.Request.Context()
 	t, err := h.s.Register(ctx, r.Email, r.Password)
 	if err != nil {
+		metrics.ObserveAuth("register", "failure")
 		switch err {
 		case ErrEmailRequired:
 			send(c, 400, "EMAIL_REQUIRED", "Введите e-mail")
@@ -114,10 +128,16 @@ func (h *Handler) Register(c *gin.Context) {
 		case ErrEmailAlreadyExists:
 			send(c, 409, "EMAIL_ALREADY_EXISTS", "Такой e-mail уже зарегистрирован")
 		default:
+			logApp(c).ErrorContext(ctx, "register failed", "operation", "auth.register", "error", err.Error())
 			send(c, 500, "INTERNAL_ERROR", "Что-то пошло не так.")
 		}
 		return
 	}
+	metrics.ObserveAuth("register", "success")
+	logAudit(c).InfoContext(ctx, "user registered",
+		"operation", "auth.register",
+		"user.email_masked", appLogger.MaskEmail(r.Email),
+	)
 	c.JSON(200, t)
 }
 
@@ -136,16 +156,19 @@ func (h *Handler) Register(c *gin.Context) {
 func (h *Handler) Login(c *gin.Context) {
 	var r AuthRequest
 	if err := c.ShouldBindJSON(&r); err != nil {
+		metrics.ObserveAuth("login", "failure")
 		send(c, 400, "BAD_REQUEST", "Неверный формат запроса")
 		return
 	}
 	if r.Email == "" && r.Password == "" {
+		metrics.ObserveAuth("login", "failure")
 		send(c, 400, "EMAIL_AND_PASSWORD_REQUIRED", "Введите e-mail и пароль")
 		return
 	}
 	ctx := c.Request.Context()
 	t, err := h.s.Login(ctx, r.Email, r.Password)
 	if err != nil {
+		metrics.ObserveAuth("login", "failure")
 		switch err {
 		case ErrEmailRequired:
 			send(c, 400, "EMAIL_REQUIRED", "Введите e-mail")
@@ -158,10 +181,16 @@ func (h *Handler) Login(c *gin.Context) {
 		case ErrInvalidCredentials:
 			send(c, 401, "INVALID_CREDENTIALS", "Неверный e-mail или пароль")
 		default:
+			logApp(c).ErrorContext(ctx, "login failed", "operation", "auth.login", "error", err.Error())
 			send(c, 500, "INTERNAL_ERROR", "Что-то пошло не так.")
 		}
 		return
 	}
+	metrics.ObserveAuth("login", "success")
+	logAudit(c).InfoContext(ctx, "user logged in",
+		"operation", "auth.login",
+		"user.email_masked", appLogger.MaskEmail(r.Email),
+	)
 	c.JSON(200, t)
 }
 
@@ -181,6 +210,7 @@ func (h *Handler) Login(c *gin.Context) {
 func (h *Handler) Refresh(c *gin.Context) {
 	var r RefreshTokenRequest
 	if err := c.ShouldBindJSON(&r); err != nil && !errors.Is(err, io.EOF) {
+		metrics.ObserveAuth("refresh", "failure")
 		send(c, 400, "BAD_REQUEST", "Неверный формат запроса")
 		return
 	}
@@ -193,6 +223,7 @@ func (h *Handler) Refresh(c *gin.Context) {
 		token = strings.TrimSpace(r.RefreshTokenSnake)
 	}
 	if token == "" {
+		metrics.ObserveAuth("refresh", "failure")
 		send(c, 401, "INVALID_REFRESH_TOKEN", "Неверный или истекший refresh token")
 		return
 	}
@@ -200,14 +231,18 @@ func (h *Handler) Refresh(c *gin.Context) {
 	ctx := c.Request.Context()
 	t, err := h.s.Refresh(ctx, token)
 	if err != nil {
+		metrics.ObserveAuth("refresh", "failure")
 		switch err {
 		case ErrInvalidCredentials:
 			send(c, 401, "INVALID_REFRESH_TOKEN", "Неверный или истекший refresh token")
 		default:
+			logApp(c).ErrorContext(ctx, "refresh failed", "operation", "auth.refresh", "error", err.Error())
 			send(c, 500, "INTERNAL_ERROR", "Что-то пошло не так.")
 		}
 		return
 	}
+	metrics.ObserveAuth("refresh", "success")
+	logAudit(c).InfoContext(ctx, "token refreshed", "operation", "auth.refresh")
 	c.JSON(200, t)
 }
 
@@ -246,10 +281,19 @@ func (h *Handler) RequestPasswordReset(c *gin.Context) {
 		case ErrRedisNotConfigured:
 			send(c, 500, "REDIS_NOT_CONFIGURED", "Кэш не настроен")
 		default:
+			logApp(c).ErrorContext(ctx, "password reset request failed",
+				"operation", "auth.password_reset.request",
+				"user.email_masked", appLogger.MaskEmail(r.Email),
+				"error", err.Error(),
+			)
 			send(c, 500, "INTERNAL_ERROR", "Что-то пошло не так.")
 		}
 		return
 	}
+	logAudit(c).InfoContext(ctx, "password reset requested",
+		"operation", "auth.password_reset.request",
+		"user.email_masked", appLogger.MaskEmail(r.Email),
+	)
 	c.Status(200)
 }
 
@@ -290,10 +334,19 @@ func (h *Handler) VerifyPasswordResetCode(c *gin.Context) {
 		case ErrRedisNotConfigured:
 			send(c, 500, "REDIS_NOT_CONFIGURED", "Кэш не настроен")
 		default:
+			logApp(c).ErrorContext(ctx, "password reset verify failed",
+				"operation", "auth.password_reset.verify",
+				"user.email_masked", appLogger.MaskEmail(r.Email),
+				"error", err.Error(),
+			)
 			send(c, 500, "INTERNAL_ERROR", "Что-то пошло не так.")
 		}
 		return
 	}
+	logAudit(c).InfoContext(ctx, "password reset code verified",
+		"operation", "auth.password_reset.verify",
+		"user.email_masked", appLogger.MaskEmail(r.Email),
+	)
 	c.JSON(200, PasswordResetVerifyResponse{ResetToken: token})
 }
 
@@ -333,10 +386,12 @@ func (h *Handler) ConfirmPasswordReset(c *gin.Context) {
 		case ErrRedisNotConfigured:
 			send(c, 500, "REDIS_NOT_CONFIGURED", "Кэш не настроен")
 		default:
+			logApp(c).ErrorContext(ctx, "password reset confirm failed", "operation", "auth.password_reset.confirm", "error", err.Error())
 			send(c, 500, "INTERNAL_ERROR", "Что-то пошло не так.")
 		}
 		return
 	}
+	logAudit(c).InfoContext(ctx, "password reset confirmed", "operation", "auth.password_reset.confirm")
 	c.Status(200)
 }
 
@@ -385,10 +440,12 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 		case ErrUserNotFound:
 			send(c, 404, "USER_NOT_FOUND", "Пользователь не найден")
 		default:
+			logApp(c).ErrorContext(ctx, "update profile failed", "operation", "auth.profile.update", "user_id", userID, "error", err.Error())
 			send(c, 500, "INTERNAL_ERROR", "Что-то пошло не так.")
 		}
 		return
 	}
+	logAudit(c).InfoContext(ctx, "profile updated", "operation", "auth.profile.update", "user_id", userID)
 	c.JSON(200, UserProfileResponse{
 		ID:        u.ID,
 		Email:     u.Email,
@@ -422,6 +479,7 @@ func (h *Handler) GetProfile(c *gin.Context) {
 		case ErrUserNotFound:
 			send(c, 404, "USER_NOT_FOUND", "Пользователь не найден")
 		default:
+			logApp(c).ErrorContext(ctx, "get profile failed", "operation", "auth.profile.get", "user_id", userID, "error", err.Error())
 			send(c, 500, "INTERNAL_ERROR", "Что-то пошло не так.")
 		}
 		return
@@ -470,10 +528,12 @@ func (h *Handler) RequestPasswordChange(c *gin.Context) {
 		case ErrUserNotFound:
 			send(c, 404, "USER_NOT_FOUND", "Пользователь не найден")
 		default:
+			logApp(c).ErrorContext(ctx, "password change request failed", "operation", "auth.password_change.request", "user_id", userID, "error", err.Error())
 			send(c, 500, "INTERNAL_ERROR", "Что-то пошло не так.")
 		}
 		return
 	}
+	logAudit(c).InfoContext(ctx, "password change requested", "operation", "auth.password_change.request", "user_id", userID)
 	c.Status(200)
 }
 
@@ -517,10 +577,12 @@ func (h *Handler) VerifyPasswordChangeCode(c *gin.Context) {
 		case ErrUserNotFound:
 			send(c, 404, "USER_NOT_FOUND", "Пользователь не найден")
 		default:
+			logApp(c).ErrorContext(ctx, "password change verify failed", "operation", "auth.password_change.verify", "user_id", userID, "error", err.Error())
 			send(c, 500, "INTERNAL_ERROR", "Что-то пошло не так.")
 		}
 		return
 	}
+	logAudit(c).InfoContext(ctx, "password change code verified", "operation", "auth.password_change.verify", "user_id", userID)
 	c.JSON(200, PasswordChangeVerifyResponse{ChangeToken: token})
 }
 
@@ -544,6 +606,7 @@ func (h *Handler) ConfirmPasswordChange(c *gin.Context) {
 		return
 	}
 	ctx := c.Request.Context()
+	userID, _ := UserIDFromContext(c)
 	if err := h.s.ConfirmPasswordChange(ctx, r.ChangeToken, r.Password, r.PasswordConfirm); err != nil {
 		switch err {
 		case ErrChangeTokenRequired:
@@ -561,10 +624,12 @@ func (h *Handler) ConfirmPasswordChange(c *gin.Context) {
 		case ErrRedisNotConfigured:
 			send(c, 500, "REDIS_NOT_CONFIGURED", "Кэш не настроен")
 		default:
+			logApp(c).ErrorContext(ctx, "password change confirm failed", "operation", "auth.password_change.confirm", "user_id", userID, "error", err.Error())
 			send(c, 500, "INTERNAL_ERROR", "Что-то пошло не так.")
 		}
 		return
 	}
+	logAudit(c).InfoContext(ctx, "password changed", "operation", "auth.password_change.confirm", "user_id", userID)
 	c.Status(200)
 }
 

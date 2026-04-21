@@ -1,7 +1,7 @@
 package config
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -11,6 +11,10 @@ type Config struct {
 	HTTPPort         string
 	DatabaseURL      string
 	JWTSecret        string
+	LogLevel         string
+	Environment      string
+	ServiceName      string
+	ServiceVersion   string
 	AccessTokenTTL   time.Duration
 	RefreshTokenTTL  time.Duration
 	AdminToken       string
@@ -34,7 +38,7 @@ func Load() *Config {
 			return v
 		}
 		if def == "" {
-			log.Fatalf("env %s required", key)
+			panic(fmt.Sprintf("env %s required", key))
 		}
 		return def
 	}
@@ -48,7 +52,7 @@ func Load() *Config {
 		if v := os.Getenv(key); v != "" {
 			n, err := strconv.Atoi(v)
 			if err != nil {
-				log.Fatalf("env %s must be int", key)
+				panic(fmt.Sprintf("env %s must be int", key))
 			}
 			return n
 		}
@@ -59,6 +63,10 @@ func Load() *Config {
 		HTTPPort:         get("HTTP_PORT", "8080"),
 		DatabaseURL:      get("DATABASE_URL", ""),
 		JWTSecret:        get("JWT_SECRET", ""),
+		LogLevel:         getOptional("LOG_LEVEL", "info"),
+		Environment:      getOptional("APP_ENV", "local"),
+		ServiceName:      getOptional("SERVICE_NAME", "vitamins-backend"),
+		ServiceVersion:   getOptional("SERVICE_VERSION", "dev"),
 		AccessTokenTTL:   15 * time.Minute,
 		RefreshTokenTTL:  30 * 24 * time.Hour,
 		AdminToken:       getOptional("ADMIN_TOKEN", ""),
