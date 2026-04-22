@@ -6,8 +6,6 @@ import (
 	context "context"
 	auth "vitamins-backend_2/internal/auth"
 
-	db "vitamins-backend_2/internal/db"
-
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -53,22 +51,22 @@ func (_m *ServiceAPI) ConfirmPasswordReset(ctx context.Context, resetToken strin
 }
 
 // GetProfile provides a mock function with given fields: ctx, userID
-func (_m *ServiceAPI) GetProfile(ctx context.Context, userID int64) (db.User, error) {
+func (_m *ServiceAPI) GetProfile(ctx context.Context, userID int64) (auth.UserProfile, error) {
 	ret := _m.Called(ctx, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetProfile")
 	}
 
-	var r0 db.User
+	var r0 auth.UserProfile
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int64) (db.User, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int64) (auth.UserProfile, error)); ok {
 		return rf(ctx, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int64) db.User); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int64) auth.UserProfile); ok {
 		r0 = rf(ctx, userID)
 	} else {
-		r0 = ret.Get(0).(db.User)
+		r0 = ret.Get(0).(auth.UserProfile)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
@@ -207,22 +205,22 @@ func (_m *ServiceAPI) RequestPasswordReset(ctx context.Context, email string) er
 }
 
 // UpdateProfile provides a mock function with given fields: ctx, userID, in
-func (_m *ServiceAPI) UpdateProfile(ctx context.Context, userID int64, in auth.ProfileUpdate) (db.User, error) {
+func (_m *ServiceAPI) UpdateProfile(ctx context.Context, userID int64, in auth.ProfileUpdate) (auth.UserProfile, error) {
 	ret := _m.Called(ctx, userID, in)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateProfile")
 	}
 
-	var r0 db.User
+	var r0 auth.UserProfile
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int64, auth.ProfileUpdate) (db.User, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int64, auth.ProfileUpdate) (auth.UserProfile, error)); ok {
 		return rf(ctx, userID, in)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int64, auth.ProfileUpdate) db.User); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int64, auth.ProfileUpdate) auth.UserProfile); ok {
 		r0 = rf(ctx, userID, in)
 	} else {
-		r0 = ret.Get(0).(db.User)
+		r0 = ret.Get(0).(auth.UserProfile)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, int64, auth.ProfileUpdate) error); ok {

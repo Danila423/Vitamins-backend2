@@ -32,7 +32,10 @@ func NewSMTPMailer(host, port, user, pass, from string) *SMTPMailer {
 	}
 }
 
-func (m *SMTPMailer) SendPasswordResetCode(ctx context.Context, toEmail, code string) error {
+// SendOneTimeCode delivers a generic one-time numeric code to the recipient.
+// The subject is configurable so the mailer can be reused for different flows
+// (password reset, password change, future two-factor, etc.).
+func (m *SMTPMailer) SendOneTimeCode(ctx context.Context, toEmail, subject, code string) error {
 	if m == nil || m.host == "" || m.port == "" || m.user == "" || m.pass == "" || m.from == "" {
 		return fmt.Errorf("smtp not configured")
 	}
@@ -47,9 +50,12 @@ func (m *SMTPMailer) SendPasswordResetCode(ctx context.Context, toEmail, code st
 		ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 		defer cancel()
 	}
+	if subject == "" {
+		subject = "Your one-time code"
+	}
 	log := appLogger.WithContext(slog.Default(), ctx).With(
 		"channel", "app",
-		"operation", "mailer.smtp.send_password_reset_code",
+		"operation", "mailer.smtp.send_one_time_code",
 		"smtp.host", m.host,
 		"to.email_masked", appLogger.MaskEmail(toEmail),
 	)
@@ -67,7 +73,7 @@ func (m *SMTPMailer) SendPasswordResetCode(ctx context.Context, toEmail, code st
 		log.Debug("smtp dialing tls", "smtp.addr", addr)
 		td := &tls.Dialer{
 			NetDialer: dialer,
-			Config:    &tls.Config{ServerName: m.host},
+			Config:    &tls.Config{ServerName: m.host, MinVersion: tls.VersionTLS12},
 		}
 		conn, err = td.DialContext(ctx, network, addr)
 	} else {
@@ -104,7 +110,7 @@ func (m *SMTPMailer) SendPasswordResetCode(ctx context.Context, toEmail, code st
 			return fmt.Errorf("smtp: server does not support STARTTLS")
 		}
 		log.Debug("smtp starttls", "smtp.addr", addr)
-		if err := c.StartTLS(&tls.Config{ServerName: m.host}); err != nil {
+		if err := c.StartTLS(&tls.Config{ServerName: m.host, MinVersion: tls.VersionTLS12}); err != nil {
 			return err
 		}
 	}
@@ -138,10 +144,8 @@ func (m *SMTPMailer) SendPasswordResetCode(ctx context.Context, toEmail, code st
 	if err != nil {
 		return err
 	}
-	defer w.Close()
 
-	subject := "Password reset code"
-	body := fmt.Sprintf("Your password reset code: %s", code)
+	body := fmt.Sprintf("Your code: %s", code)
 
 	msg := strings.Join([]string{
 		fmt.Sprintf("From: %s", m.from),
@@ -155,8 +159,15 @@ func (m *SMTPMailer) SendPasswordResetCode(ctx context.Context, toEmail, code st
 	}, "\r\n")
 
 	if _, err := w.Write([]byte(msg)); err != nil {
+		_ = w.Close()
 		return err
 	}
 
-	return c.Quit()
+	if err := w.Close(); err != nil {
+		return err
+	}
+	if err := c.Quit(); err != nil {
+		return err
+	}
+	return nil
 }

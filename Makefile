@@ -6,6 +6,7 @@ DOCKER_TEST_DB_NAME ?= vitamins_test
 DOCKER_TEST_DATABASE_URL ?= postgres://vitamins:vitamins@db:5432/$(DOCKER_TEST_DB_NAME)?sslmode=disable
 GOTESTSUM_FORMAT ?= pkgname
 GOTESTSUM_VERSION ?= v1.12.0
+GO_TEST_P ?= 1
 
 seed-catalog:
 	@test -n "$(DATABASE_URL)" || (echo "DATABASE_URL is required" >&2; exit 1)
@@ -42,7 +43,7 @@ test-integration: test-db-ready test-cache
 		-w /app \
 		-e TEST_DATABASE_URL="$(DOCKER_TEST_DATABASE_URL)" \
 		$(DOCKER_GO_IMAGE) \
-		/bin/sh -lc 'export PATH=/usr/local/go/bin:$$PATH; /usr/local/go/bin/go install gotest.tools/gotestsum@$(GOTESTSUM_VERSION); /go/bin/gotestsum --format $(GOTESTSUM_FORMAT) -- -tags=integration -count=1 ./...'
+		/bin/sh -lc 'export PATH=/usr/local/go/bin:$$PATH; /usr/local/go/bin/go install gotest.tools/gotestsum@$(GOTESTSUM_VERSION); /go/bin/gotestsum --format $(GOTESTSUM_FORMAT) -- -tags=integration -count=1 -p $(GO_TEST_P) ./...'
 
 test-e2e: test-db-ready test-cache
 	docker run --rm \
@@ -53,7 +54,7 @@ test-e2e: test-db-ready test-cache
 		-w /app \
 		-e TEST_DATABASE_URL="$(DOCKER_TEST_DATABASE_URL)" \
 		$(DOCKER_GO_IMAGE) \
-		/bin/sh -lc 'export PATH=/usr/local/go/bin:$$PATH; /usr/local/go/bin/go install gotest.tools/gotestsum@$(GOTESTSUM_VERSION); /go/bin/gotestsum --format $(GOTESTSUM_FORMAT) -- -tags=e2e -count=1 ./test/e2e'
+		/bin/sh -lc 'export PATH=/usr/local/go/bin:$$PATH; /usr/local/go/bin/go install gotest.tools/gotestsum@$(GOTESTSUM_VERSION); /go/bin/gotestsum --format $(GOTESTSUM_FORMAT) -- -tags=e2e -count=1 -p $(GO_TEST_P) ./test/e2e'
 
 test-all: test-unit test-integration test-e2e testifylint
 

@@ -143,4 +143,3 @@ func newRequestID() string {
 	}
 	return hex.EncodeToString(b)
 }
-

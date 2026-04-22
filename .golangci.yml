@@ -1,0 +1,51 @@
+run:
+  timeout: 5m
+  go: "1.23"
+
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gosec
+    - gosimple
+    - gofmt
+    - goimports
+    - misspell
+    - bodyclose
+    - noctx
+    - unconvert
+    - nolintlint
+    - revive
+
+linters-settings:
+  gosec:
+    excludes:
+      - G104
+  errcheck:
+    check-type-assertions: true
+
+issues:
+  exclude-dirs:
+    - internal/auth/mocks
+    - internal/analytics/mocks
+    - internal/vitamins/mocks
+    - internal/db
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gosec
+        - errcheck
+    - path: _test\.go
+      text: "unused-parameter"
+      linters:
+        - revive
+    - path: "internal/auth/auth\\.go"
+      text: "stutters"
+      linters:
+        - revive
+  max-same-issues: 0
+  max-issues-per-linter: 0

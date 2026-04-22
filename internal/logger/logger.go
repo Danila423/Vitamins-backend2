@@ -81,6 +81,7 @@ func TraceFromContext(ctx context.Context) (traceID, spanID string) {
 	return strings.TrimSpace(traceID), strings.TrimSpace(spanID)
 }
 
+//nolint:revive // ctx is intentionally second — the logger is the primary receiver
 func WithContext(l *slog.Logger, ctx context.Context) *slog.Logger {
 	if l == nil {
 		l = slog.Default()
@@ -110,4 +111,3 @@ func MaskEmail(email string) string {
 	}
 	return local[:1] + "***" + local[len(local)-1:] + "@" + parts[1]
 }
-

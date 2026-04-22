@@ -23,6 +23,7 @@ require (
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2 // indirect
 	github.com/ajg/form v1.5.1 // indirect
+	github.com/alicebob/miniredis/v2 v2.37.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
@@ -83,6 +84,7 @@ require (
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0 // indirect
 	github.com/yudai/gojsondiff v1.0.0 // indirect
 	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect
+	github.com/yuin/gopher-lua v1.1.1 // indirect
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/mod v0.25.0 // indirect
 	golang.org/x/net v0.38.0 // indirect

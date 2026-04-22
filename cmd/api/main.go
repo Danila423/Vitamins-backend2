@@ -23,7 +23,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	docs "vitamins-backend_2/docs" // <- обязательно
+	docs "vitamins-backend_2/docs"
 	"vitamins-backend_2/internal/analytics"
 	"vitamins-backend_2/internal/auth"
 	"vitamins-backend_2/internal/cache"
@@ -36,7 +36,11 @@ import (
 )
 
 func main() {
-	cfg := config.Load()
+	cfg, err := config.Load()
+	if err != nil {
+		slog.Default().Error("config load failed", "operation", "bootstrap.config_load", "error", err.Error())
+		os.Exit(1)
+	}
 	appLogger := logger.New(logger.Config{
 		Level:          cfg.LogLevel,
 		Environment:    cfg.Environment,
@@ -76,10 +80,10 @@ func main() {
 		RateLimit:   cfg.ResetRateLimit,
 	})
 	h := auth.NewHandler(svc)
-	vitSvc := vitamins.NewService(q, pool)
+	vitSvc := vitamins.NewServiceWithConfig(q, pool, vitamins.ServiceConfig{ListParallelism: cfg.VitaminsListParallelism})
 	vitHandler := vitamins.NewHandler(vitSvc)
 	analyticsSvc := analytics.NewService(q, pool)
-	analyticsHandler := analytics.NewHandler(analyticsSvc, jwt, cfg.AdminToken)
+	analyticsHandler := analytics.NewHandler(analyticsSvc)
 
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
@@ -90,7 +94,6 @@ func main() {
 	r.Use(logger.ErrorLoggingMiddleware(appLogger))
 	r.Use(logger.RecoveryMiddleware(appLogger))
 
-	// Swagger РОУТ – именно на r, не в /api/v1
 	r.GET("/swagger", func(c *gin.Context) {
 		c.Redirect(http.StatusTemporaryRedirect, "/swagger/index.html")
 	})
@@ -134,7 +137,10 @@ func main() {
 		}
 		analyticsGroup := api.Group("/analytics")
 		{
-			analyticsGroup.POST("/events", analyticsHandler.IngestEvents)
+			ingest := analyticsGroup.Group("")
+			ingest.Use(auth.OptionalAuthMiddleware(jwt))
+			ingest.POST("/events", analyticsHandler.IngestEvents)
+
 			analyticsAuth := analyticsGroup.Group("")
 			analyticsAuth.Use(auth.AuthMiddleware(jwt))
 			{
@@ -143,6 +149,7 @@ func main() {
 			}
 		}
 		adminGroup := api.Group("/admin")
+		adminGroup.Use(auth.AdminTokenMiddleware(cfg.AdminToken))
 		{
 			adminGroup.GET("/analytics/export", analyticsHandler.Export)
 		}

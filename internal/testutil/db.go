@@ -4,12 +4,12 @@ import (
 	"context"
 	"net/url"
 	"os"
-	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	"vitamins-backend_2/internal/db"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -19,6 +19,10 @@ var (
 	schemaErr  error
 )
 
+// NewTestPool opens a pool to TEST_DATABASE_URL after verifying the DSN is safe
+// (db name must contain "test"), applies embedded migrations exactly once per
+// process, and registers Close on test cleanup. Tests must call ResetTables
+// between runs to start from a known empty state.
 func NewTestPool(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 
@@ -33,17 +37,50 @@ func NewTestPool(t *testing.T) *pgxpool.Pool {
 	t.Cleanup(pool.Close)
 
 	schemaOnce.Do(func() {
-		schemaErr = applySchema(ctx, pool)
+		schemaErr = db.Apply(ctx, pool)
 	})
 	if schemaErr != nil {
-		t.Fatalf("apply schema: %v", schemaErr)
+		t.Fatalf("apply migrations: %v", schemaErr)
 	}
 
 	return pool
 }
 
+// ResetTables truncates all application tables. Before issuing the destructive
+// statement it re-checks two safety properties at runtime, in addition to the
+// DSN-based whitelist enforced by NewTestPool:
+//   - the connected database name still contains "test"
+//   - the host (from inet_server_addr / current host environment) is not a
+//     production-looking address.
+//
+// This makes it much harder to accidentally point integration tests at a real
+// database via a misconfigured pool.
 func ResetTables(t *testing.T, pool *pgxpool.Pool) {
 	t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var dbName string
+	if err := pool.QueryRow(ctx, "SELECT current_database()").Scan(&dbName); err != nil {
+		t.Fatalf("verify current_database: %v", err)
+	}
+	if !strings.Contains(strings.ToLower(dbName), "test") {
+		t.Fatalf("refusing to ResetTables on database %q (must contain 'test')", dbName)
+	}
+
+	var serverAddr *string
+	if err := pool.QueryRow(ctx, "SELECT host(inet_server_addr())::text").Scan(&serverAddr); err != nil {
+		// Unix sockets / shared servers may not expose inet_server_addr; that's
+		// acceptable — we already checked the DSN and current_database.
+		serverAddr = nil
+	}
+	if serverAddr != nil {
+		host := strings.ToLower(strings.TrimSpace(*serverAddr))
+		if isProdLikeHost(host) {
+			t.Fatalf("refusing to ResetTables on prod-looking host %q", host)
+		}
+	}
+
 	const truncateSQL = `
 TRUNCATE TABLE
 	analytics_events,
@@ -57,22 +94,27 @@ TRUNCATE TABLE
 	users
 RESTART IDENTITY CASCADE;
 `
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 	if _, err := pool.Exec(ctx, truncateSQL); err != nil {
 		t.Fatalf("truncate test db: %v", err)
 	}
 }
 
-func applySchema(ctx context.Context, pool *pgxpool.Pool) error {
-	root := repoRoot()
-	schemaPath := filepath.Join(root, "internal", "db", "models.sql")
-	content, err := os.ReadFile(schemaPath)
-	if err != nil {
-		return err
+func isProdLikeHost(host string) bool {
+	if host == "" {
+		return false
 	}
-	_, err = pool.Exec(ctx, string(content))
-	return err
+	if host == "127.0.0.1" || host == "::1" || host == "localhost" {
+		return false
+	}
+	// Treat private network ranges and docker-compose names containing "test"
+	// as safe; everything else is rejected.
+	if strings.HasPrefix(host, "10.") || strings.HasPrefix(host, "192.168.") {
+		return false
+	}
+	if strings.Contains(host, "test") {
+		return false
+	}
+	return true
 }
 
 func requireSafeTestDBURL(t *testing.T) string {
@@ -92,9 +134,4 @@ func requireSafeTestDBURL(t *testing.T) string {
 		t.Fatalf("unsafe TEST_DATABASE_URL db name %q: must contain 'test'", dbName)
 	}
 	return dsn
-}
-
-func repoRoot() string {
-	_, current, _, _ := runtime.Caller(0)
-	return filepath.Clean(filepath.Join(filepath.Dir(current), "..", ".."))
 }

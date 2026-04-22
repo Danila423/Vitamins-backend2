@@ -1,5 +1,16 @@
 .env
+.env.*
+!.env.example
 .idea/
+
+# Built binaries (Go)
 /api
+/bin/
+*.test
+*.out
+coverage.*
+
+# Logs and runtime artefacts
 *.log
 dist/
+.cache/

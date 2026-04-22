@@ -1,7 +1,0 @@
-./handler.go
-./jwt.go
-./middleware.go
-./profile.go
-./service.go
-./service_api.go
-./validation.go
