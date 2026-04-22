@@ -108,7 +108,7 @@ func isProdLikeHost(host string) bool {
 	}
 	// Treat private network ranges and docker-compose names containing "test"
 	// as safe; everything else is rejected.
-	if strings.HasPrefix(host, "10.") || strings.HasPrefix(host, "192.168.") {
+	if strings.HasPrefix(host, "10.") || strings.HasPrefix(host, "192.168.") || strings.HasPrefix(host, "172.") {
 		return false
 	}
 	if strings.Contains(host, "test") {
