@@ -1,11 +1,11 @@
 .PHONY: seed-catalog test-cache test-db-up test-db-create test-db-ready test-unit test-integration test-e2e test-all test-mocks testifylint test-tools
 
-DOCKER_GO_IMAGE ?= golang:1.23-bookworm
+DOCKER_GO_IMAGE ?= golang:1.25-bookworm
 DOCKER_TEST_NETWORK ?= vitamins-backend_2_full_default
 DOCKER_TEST_DB_NAME ?= vitamins_test
 DOCKER_TEST_DATABASE_URL ?= postgres://vitamins:vitamins@db:5432/$(DOCKER_TEST_DB_NAME)?sslmode=disable
 GOTESTSUM_FORMAT ?= pkgname
-GOTESTSUM_VERSION ?= v1.12.0
+GOTESTSUM_VERSION ?= v1.13.0
 GO_TEST_P ?= 1
 
 seed-catalog:
@@ -73,4 +73,4 @@ testifylint: test-cache
 test-tools:
 	go install github.com/vektra/mockery/v2@v2.53.3
 	go install github.com/Antonboom/testifylint@v1.6.4
-	go install gotest.tools/gotestsum@$(GOTESTSUM_VERSION)
+	go install gotest.tools/gotestsum@v1.13.0

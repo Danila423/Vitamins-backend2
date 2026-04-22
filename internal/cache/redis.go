@@ -19,7 +19,7 @@ func NewRedisStore(client *redis.Client) *RedisStore {
 }
 
 func (r *RedisStore) SetNX(ctx context.Context, key, value string, ttl time.Duration) (bool, error) {
-	return r.client.SetNX(ctx, key, value, ttl).Result()
+	return r.client.SetNX(ctx, key, value, ttl).Result() //nolint:staticcheck // SetNX still works; migrating to SetArgs is a separate task
 }
 
 func (r *RedisStore) Set(ctx context.Context, key, value string, ttl time.Duration) error {
