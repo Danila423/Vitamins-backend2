@@ -5,7 +5,7 @@ import "context"
 // ServiceAPI describes vitamins operations used by HTTP handlers.
 //
 //go:generate mockery --name ServiceAPI --dir . --output ../mocks --outpkg mocks --filename service_api.go
-type ServiceAPI interface { //nolint:revive // renaming would break the public API
+type ServiceAPI interface {
 	ListCatalog(ctx context.Context) ([]CatalogItem, error)
 	CreateReminder(ctx context.Context, userID int64, req CreateReminderRequest) (ReminderResponse, error)
 	ListReminders(ctx context.Context, userID int64) ([]ReminderResponse, error)

@@ -70,7 +70,7 @@ func main() {
 			Password: cfg.RedisPassword,
 			DB:       cfg.RedisDB,
 		})
-		defer client.Close()
+		defer client.Close() //nolint:errcheck // best-effort cleanup on shutdown
 		redisStore = cache.NewRedisStore(client)
 	}
 	svc := auth.NewService(q, jwt, m, redisStore, auth.PasswordResetConfig{

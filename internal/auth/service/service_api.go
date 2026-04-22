@@ -7,7 +7,7 @@ import (
 // ServiceAPI describes auth operations used by HTTP handlers.
 //
 //go:generate mockery --name ServiceAPI --dir . --output ../mocks --outpkg mocks --filename service_api.go
-type ServiceAPI interface { //nolint:revive // renaming would break the public API
+type ServiceAPI interface {
 	Register(ctx context.Context, email, pw string) (*TokenPair, error)
 	Login(ctx context.Context, email, pw string) (*TokenPair, error)
 	Refresh(ctx context.Context, token string) (*TokenPair, error)

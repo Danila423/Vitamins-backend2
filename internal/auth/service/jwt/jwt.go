@@ -32,7 +32,7 @@ type Claims struct {
 	jwtlib.RegisteredClaims
 }
 
-type JWTManager struct { //nolint:revive // renaming would break the public API
+type JWTManager struct {
 	secret     []byte
 	accessTTL  time.Duration
 	refreshTTL time.Duration

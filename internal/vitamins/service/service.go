@@ -36,7 +36,7 @@ var (
 )
 
 // ServiceConfig groups tunable options for the vitamins use-case service.
-type ServiceConfig struct { //nolint:revive // renaming would break the public API
+type ServiceConfig struct {
 	// ListParallelism caps the number of concurrent reminder builds inside
 	// ListReminders. Zero or negative falls back to defaultListParallelism.
 	ListParallelism int

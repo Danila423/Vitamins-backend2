@@ -97,7 +97,7 @@ func (m *SMTPMailer) SendOneTimeCode(ctx context.Context, toEmail, subject, code
 		_ = conn.Close()
 		return err
 	}
-	defer c.Close()
+	defer c.Close() //nolint:errcheck // best-effort cleanup
 
 	// Explicit EHLO/HELO (helps some servers behave more predictably).
 	if err := c.Hello("vitamins"); err != nil {

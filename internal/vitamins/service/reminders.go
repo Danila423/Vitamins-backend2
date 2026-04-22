@@ -96,7 +96,7 @@ func (s *Service) CreateReminder(ctx context.Context, userID int64, req CreateRe
 			if _, err := txRepo.CreateIntakeTime(ctx, db.CreateIntakeTimeParams{
 				ScheduleID: schedule.ID,
 				TimeOfDay:  t,
-				SortOrder:  int32(i), //nolint:gosec // i is bounded by a small slice length
+				SortOrder:  int32(i),
 			}); err != nil {
 				return err
 			}
@@ -305,7 +305,7 @@ func (s *Service) UpdateReminder(ctx context.Context, userID, id int64, req Upda
 				if _, err := txRepo.CreateIntakeTime(ctx, db.CreateIntakeTimeParams{
 					ScheduleID: schedule.ID,
 					TimeOfDay:  t,
-					SortOrder:  int32(i), //nolint:gosec // i is bounded by a small slice length
+					SortOrder:  int32(i),
 				}); err != nil {
 					return err
 				}
