@@ -17,7 +17,6 @@ import (
 
 func TestProfileHandlers(t *testing.T) {
 	t.Parallel()
-	gin.SetMode(gin.TestMode)
 
 	makeServer := func(svc auth.ServiceAPI) (*httptest.Server, *auth.JWTManager) {
 		jwt := auth.NewJWTManager("profile-test-secret", time.Minute, time.Minute)

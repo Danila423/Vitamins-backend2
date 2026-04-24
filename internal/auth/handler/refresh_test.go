@@ -22,7 +22,6 @@ import (
 
 func TestRefreshHandler(t *testing.T) {
 	t.Parallel()
-	gin.SetMode(gin.TestMode)
 
 	makeServer := func(svc auth.ServiceAPI) *httptest.Server {
 		r := gin.New()
