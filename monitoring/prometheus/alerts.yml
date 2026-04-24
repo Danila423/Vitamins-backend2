@@ -2,7 +2,7 @@ groups:
   - name: vitamins-api
     rules:
       - alert: VitaminsApiDown
-        expr: up{job="vitamins-api"} == 0
+        expr: up{job="gateway"} == 0
         for: 2m
         labels:
           severity: critical
@@ -12,6 +12,39 @@ groups:
           summary: "Vitamins API is down"
           description: "Prometheus cannot scrape vitamins API for 2 minutes."
           runbook_url: "https://runbooks.local/vitamins/api-down"
+
+      - alert: AuthServiceDown
+        expr: up{job="auth-service"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: backend
+          service: auth-service
+        annotations:
+          summary: "Auth service is down"
+          description: "Prometheus cannot scrape auth-service for 2 minutes."
+
+      - alert: VitaminsServiceDown
+        expr: up{job="vitamins-service"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: backend
+          service: vitamins-service
+        annotations:
+          summary: "Vitamins service is down"
+          description: "Prometheus cannot scrape vitamins-service for 2 minutes."
+
+      - alert: AnalyticsServiceDown
+        expr: up{job="analytics-service"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          team: backend
+          service: analytics-service
+        annotations:
+          summary: "Analytics service is down"
+          description: "Prometheus cannot scrape analytics-service for 2 minutes."
 
       - alert: VitaminsApiHigh5xxRate
         expr: |

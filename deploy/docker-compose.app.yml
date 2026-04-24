@@ -1,0 +1,57 @@
+services:
+  auth-service:
+    image: vitamins/auth-service:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      GRPC_PORT: "50051"
+      SERVICE_NAME: auth-service
+    networks:
+      - backend
+
+  vitamins-service:
+    image: vitamins/vitamins-service:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      GRPC_PORT: "50052"
+      SERVICE_NAME: vitamins-service
+    networks:
+      - backend
+
+  analytics-service:
+    image: vitamins/analytics-service:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      GRPC_PORT: "50053"
+      SERVICE_NAME: analytics-service
+    networks:
+      - backend
+
+  gateway:
+    image: vitamins/gateway:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      HTTP_PORT: "8080"
+      AUTH_SERVICE_ADDR: "auth-service:50051"
+      VITAMINS_SERVICE_ADDR: "vitamins-service:50052"
+      ANALYTICS_SERVICE_ADDR: "analytics-service:50053"
+      SERVICE_NAME: gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - vitamins-service
+      - analytics-service
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge

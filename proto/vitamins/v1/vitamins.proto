@@ -1,0 +1,148 @@
+syntax = "proto3";
+
+package vitamins.v1;
+
+option go_package = "vitamins-backend_2/gen/go/vitamins/v1;vitaminsv1";
+
+service VitaminsService {
+  rpc ListCatalog(ListCatalogRequest) returns (ListCatalogResponse);
+  rpc CreateReminder(CreateReminderRequest) returns (ReminderResponse);
+  rpc ListReminders(ListRemindersRequest) returns (ListRemindersResponse);
+  rpc GetReminder(GetReminderRequest) returns (ReminderResponse);
+  rpc UpdateReminder(UpdateReminderRequest) returns (ReminderResponse);
+  rpc SetReminderActive(SetReminderActiveRequest) returns (ReminderResponse);
+}
+
+message ListCatalogRequest {}
+
+message ListCatalogResponse {
+  repeated CatalogItem items = 1;
+}
+
+message CatalogItem {
+  int64 id = 1;
+  optional string code = 2;
+  string display_name = 3;
+  optional string default_unit = 4;
+  optional string interaction_text = 5;
+  optional string compatibility_text = 6;
+  optional string contraindications_text = 7;
+  optional string default_condition = 8;
+}
+
+message CourseInput {
+  string start_date = 1;
+  optional string end_date = 2;
+  optional int32 duration_days = 3;
+  string timezone = 4;
+}
+
+message ScheduleInput {
+  repeated string days = 1;
+  repeated string times = 2;
+}
+
+message NotificationPreferencesInput {
+  optional bool include_dose = 1;
+  optional bool include_frequency = 2;
+  optional bool include_interaction = 3;
+  optional bool include_compatibility = 4;
+  optional bool include_condition = 5;
+  optional bool include_contraindications = 6;
+}
+
+message ContentOverridesInput {
+  optional string interaction_text_override = 1;
+  optional string compatibility_text_override = 2;
+  optional string contraindications_text_override = 3;
+}
+
+message CreateReminderRequest {
+  int64 user_id = 1;
+  optional int64 catalog_id = 2;
+  optional string name = 3;
+  optional string form = 4;
+  optional string dose = 5;
+  optional string condition = 6;
+  optional string note = 7;
+  CourseInput course = 8;
+  ScheduleInput schedule = 9;
+  NotificationPreferencesInput notification_preferences = 10;
+  ContentOverridesInput content_overrides = 11;
+}
+
+message ListRemindersRequest {
+  int64 user_id = 1;
+}
+
+message ListRemindersResponse {
+  repeated ReminderResponse reminders = 1;
+}
+
+message GetReminderRequest {
+  int64 user_id = 1;
+  int64 reminder_id = 2;
+}
+
+message UpdateReminderRequest {
+  int64 user_id = 1;
+  int64 reminder_id = 2;
+  optional string name = 3;
+  optional string form = 4;
+  optional string dose = 5;
+  optional string condition = 6;
+  optional string note = 7;
+  optional CourseInput course = 8;
+  optional ScheduleInput schedule = 9;
+  optional NotificationPreferencesInput notification_preferences = 10;
+  optional ContentOverridesInput content_overrides = 11;
+}
+
+message SetReminderActiveRequest {
+  int64 user_id = 1;
+  int64 reminder_id = 2;
+  bool active = 3;
+}
+
+message CourseResponse {
+  string start_date = 1;
+  optional string end_date = 2;
+  string timezone = 3;
+}
+
+message ScheduleResponse {
+  string type = 1;
+  repeated string days = 2;
+  repeated string times = 3;
+}
+
+message NotificationPreferencesResponse {
+  bool include_dose = 1;
+  bool include_frequency = 2;
+  bool include_interaction = 3;
+  bool include_compatibility = 4;
+  bool include_condition = 5;
+  bool include_contraindications = 6;
+}
+
+message ContentOverridesResponse {
+  optional string interaction_text_override = 1;
+  optional string compatibility_text_override = 2;
+  optional string contraindications_text_override = 3;
+}
+
+message ReminderResponse {
+  int64 id = 1;
+  optional int64 catalog_id = 2;
+  string name = 3;
+  string form = 4;
+  string dose = 5;
+  string condition = 6;
+  string note = 7;
+  bool is_active = 8;
+  optional CatalogItem catalog = 9;
+  CourseResponse course = 10;
+  ScheduleResponse schedule = 11;
+  NotificationPreferencesResponse notification_preferences = 12;
+  ContentOverridesResponse content_overrides = 13;
+}

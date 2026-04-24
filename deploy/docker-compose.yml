@@ -1,0 +1,305 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: vitamins
+      POSTGRES_PASSWORD: vitamins
+      POSTGRES_DB: vitamins
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ../pkg/db/models.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ../pkg/db/seed_vitamin_catalog.sql:/docker-entrypoint-initdb.d/002_seed_catalog.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vitamins"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: vitamins
+      RABBITMQ_DEFAULT_PASS: vitamins
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  auth-service:
+    build:
+      context: ..
+      dockerfile: services/auth/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - ../.env
+    environment:
+      GRPC_PORT: "50051"
+      METRICS_PORT: "9100"
+      DATABASE_URL: postgresql://vitamins:vitamins@db:5432/vitamins?sslmode=disable
+      REDIS_ADDR: "redis:6379"
+      RABBITMQ_URL: "amqp://vitamins:vitamins@rabbitmq:5672/"
+      SERVICE_NAME: auth-service
+      APP_ENV: production
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9100/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "vitamins-auth"
+
+  vitamins-service:
+    build:
+      context: ..
+      dockerfile: services/vitamins/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - ../.env
+    environment:
+      GRPC_PORT: "50052"
+      METRICS_PORT: "9100"
+      DATABASE_URL: postgresql://vitamins:vitamins@db:5432/vitamins?sslmode=disable
+      SERVICE_NAME: vitamins-service
+      APP_ENV: production
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9100/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "vitamins-vitamins"
+
+  analytics-service:
+    build:
+      context: ..
+      dockerfile: services/analytics/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - ../.env
+    environment:
+      GRPC_PORT: "50053"
+      METRICS_PORT: "9100"
+      DATABASE_URL: postgresql://vitamins:vitamins@db:5432/vitamins?sslmode=disable
+      RABBITMQ_URL: "amqp://vitamins:vitamins@rabbitmq:5672/"
+      SERVICE_NAME: analytics-service
+      APP_ENV: production
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9100/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "vitamins-analytics"
+
+  gateway:
+    build:
+      context: ..
+      dockerfile: services/gateway/Dockerfile
+    depends_on:
+      auth-service:
+        condition: service_started
+      vitamins-service:
+        condition: service_started
+      analytics-service:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - ../.env
+    environment:
+      HTTP_PORT: "8080"
+      AUTH_SERVICE_ADDR: "auth-service:50051"
+      VITAMINS_SERVICE_ADDR: "vitamins-service:50052"
+      ANALYTICS_SERVICE_ADDR: "analytics-service:50053"
+      RABBITMQ_URL: "amqp://vitamins:vitamins@rabbitmq:5672/"
+      SERVICE_NAME: gateway
+      APP_ENV: production
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    ports:
+      - "8080:8080"
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "vitamins-gateway"
+
+  notifier:
+    build:
+      context: ..
+      dockerfile: services/notifier/Dockerfile
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - ../.env
+    environment:
+      METRICS_PORT: "9100"
+      RABBITMQ_URL: "amqp://vitamins:vitamins@rabbitmq:5672/"
+      SERVICE_NAME: notifier
+      APP_ENV: production
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9100/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "vitamins-notifier"
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      - gateway
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ../monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+
+  grafana:
+    image: grafana/grafana:11.1.4
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ../monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ../monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    environment:
+      DATA_SOURCE_NAME: postgresql://vitamins:vitamins@db:5432/vitamins?sslmode=disable
+    ports:
+      - "9187:9187"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.62.0
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    ports:
+      - "9121:9121"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.license.self_generated.type=basic
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s > /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.13.4
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    ports:
+      - "12201:12201/udp"
+      - "9600:9600"
+    volumes:
+      - ../elk/logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ../elk/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - logstash_data:/usr/share/logstash/data
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    ports:
+      - "5601:5601"
+    volumes:
+      - ../elk/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+
+volumes:
+  db_data:
+    external: true
+    name: vitamins-backend_2_full_db_data
+  rabbitmq_data:
+  es_data:
+  logstash_data:
+  prometheus_data:
+  grafana_data:
+  alertmanager_data:

@@ -147,8 +147,8 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./internal/db/models.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
-      - ./internal/db/seed_vitamin_catalog.sql:/docker-entrypoint-initdb.d/002_seed_catalog.sql:ro
+      - ./pkg/db/models.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ./pkg/db/seed_vitamin_catalog.sql:/docker-entrypoint-initdb.d/002_seed_catalog.sql:ro
 
   redis:
     image: redis:7
@@ -178,7 +178,7 @@ services:
     environment:
       PGPASSWORD: vitamins
     volumes:
-      - ./internal/db/seed_vitamin_catalog.sql:/seed/seed_vitamin_catalog.sql:ro
+      - ./pkg/db/seed_vitamin_catalog.sql:/seed/seed_vitamin_catalog.sql:ro
     entrypoint: ["/bin/bash", "-c"]
     command: >
       until pg_isready -h db -U vitamins -d vitamins; do sleep 1; done;

@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package analytics.v1;
+
+option go_package = "vitamins-backend_2/gen/go/analytics/v1;analyticsv1";
+
+service AnalyticsService {
+  rpc Ingest(IngestRequest) returns (IngestResponse);
+  rpc SetConsent(SetConsentRequest) returns (SetConsentResponse);
+  rpc GetConsent(GetConsentRequest) returns (GetConsentResponse);
+  rpc Export(ExportRequest) returns (ExportResponse);
+}
+
+message IngestRequest {
+  optional int64 user_id = 1;
+  BatchRequest batch = 2;
+}
+
+message BatchRequest {
+  optional string batch_id = 1;
+  optional string sent_at = 2;
+  repeated EventInput events = 3;
+}
+
+message EventInput {
+  string event_id = 1;
+  string occurred_at = 2;
+  string event_name = 3;
+  string session_id = 4;
+  optional int64 user_id = 5;
+  optional string anonymous_id = 6;
+  bytes properties_json = 7;
+  optional string request_id = 8;
+  optional string app_version = 9;
+  optional string platform = 10;
+}
+
+message IngestResponse {
+  int32 accepted = 1;
+  int32 deduplicated = 2;
+}
+
+message SetConsentRequest {
+  int64 user_id = 1;
+  bool consent = 2;
+}
+
+message SetConsentResponse {}
+
+message GetConsentRequest {
+  int64 user_id = 1;
+}
+
+message GetConsentResponse {
+  bool consent = 1;
+}
+
+message ExportRequest {
+  optional string from = 1;
+  optional string to = 2;
+  optional string event_name = 3;
+  optional int64 user_id = 4;
+  int32 limit = 5;
+  int32 offset = 6;
+}
+
+message ExportResponse {
+  repeated ExportRow rows = 1;
+}
+
+message ExportRow {
+  string event_id = 1;
+  string occurred_at = 2;
+  string received_at = 3;
+  optional int64 user_id = 4;
+  optional string anonymous_id = 5;
+  string session_id = 6;
+  string event_name = 7;
+  string properties = 8;
+  optional string request_id = 9;
+  optional string app_version = 10;
+  optional string platform = 11;
+}

@@ -12,7 +12,7 @@
       "title": "Process CPU seconds / sec",
       "datasource": "Prometheus",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
-      "targets": [{ "expr": "rate(process_cpu_seconds_total{job=\"vitamins-api\"}[5m])", "legendFormat": "cpu" }]
+      "targets": [{ "expr": "rate(process_cpu_seconds_total{job=\"gateway\"}[5m])", "legendFormat": "cpu" }]
     },
     {
       "id": 2,
@@ -20,7 +20,7 @@
       "title": "Process resident memory",
       "datasource": "Prometheus",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
-      "targets": [{ "expr": "process_resident_memory_bytes{job=\"vitamins-api\"}", "legendFormat": "rss" }]
+      "targets": [{ "expr": "process_resident_memory_bytes{job=\"gateway\"}", "legendFormat": "rss" }]
     },
     {
       "id": 3,
@@ -28,7 +28,7 @@
       "title": "Goroutines",
       "datasource": "Prometheus",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
-      "targets": [{ "expr": "go_goroutines{job=\"vitamins-api\"}", "legendFormat": "goroutines" }]
+      "targets": [{ "expr": "go_goroutines{job=\"gateway\"}", "legendFormat": "goroutines" }]
     },
     {
       "id": 4,
@@ -38,7 +38,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(go_gc_duration_seconds_bucket{job=\"vitamins-api\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(go_gc_duration_seconds_bucket{job=\"gateway\"}[5m])) by (le))",
           "legendFormat": "p95"
         }
       ]
@@ -49,7 +49,7 @@
       "title": "Process uptime (seconds)",
       "datasource": "Prometheus",
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
-      "targets": [{ "expr": "time() - process_start_time_seconds{job=\"vitamins-api\"}", "legendFormat": "uptime" }]
+      "targets": [{ "expr": "time() - process_start_time_seconds{job=\"gateway\"}", "legendFormat": "uptime" }]
     }
   ]
 }

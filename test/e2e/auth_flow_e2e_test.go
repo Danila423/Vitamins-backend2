@@ -3,43 +3,39 @@
 package e2e
 
 import (
-	"net/http/httptest"
+	"net/http"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/gavv/httpexpect/v2"
-	"github.com/gin-gonic/gin"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
-	"vitamins-backend_2/internal/auth"
-	"vitamins-backend_2/internal/db"
-	"vitamins-backend_2/internal/testutil"
 )
 
+func gatewayURL(t *testing.T) string {
+	t.Helper()
+	u := os.Getenv("GATEWAY_URL")
+	if u == "" {
+		u = "http://localhost:8080"
+	}
+	return u
+}
+
+func requireGateway(t *testing.T, baseURL string) {
+	t.Helper()
+	client := &http.Client{Timeout: 2 * time.Second}
+	_, err := client.Get(baseURL + "/health")
+	if err != nil {
+		t.Skipf("gateway not reachable at %s, skipping e2e: %v", baseURL, err)
+	}
+}
+
 func TestAuthFlowE2E_RegisterRefreshGetProfile(t *testing.T) {
-	gin.SetMode(gin.TestMode)
+	baseURL := gatewayURL(t)
+	requireGateway(t, baseURL)
 
-	pool := testutil.NewTestPool(t)
-	testutil.ResetTables(t, pool)
-
-	q := db.New(pool)
-	jwt := auth.NewJWTManager("e2e-secret", 2*time.Minute, 10*time.Minute)
-	svc := auth.NewService(q, jwt, nil, nil, auth.PasswordResetConfig{})
-	h := auth.NewHandler(svc)
-
-	r := gin.New()
-	api := r.Group("/api/v1")
-	authGroup := api.Group("/auth")
-	authGroup.POST("/register", h.Register)
-	authGroup.POST("/refresh", h.Refresh)
-	users := api.Group("/users")
-	users.Use(auth.AuthMiddleware(jwt))
-	users.GET("/me", h.GetProfile)
-
-	ts := httptest.NewServer(r)
-	t.Cleanup(ts.Close)
-
-	e := httpexpect.Default(t, ts.URL)
+	e := httpexpect.Default(t, baseURL)
 
 	registerResp := e.POST("/api/v1/auth/register").
 		WithJSON(map[string]any{
