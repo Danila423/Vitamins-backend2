@@ -60,21 +60,21 @@ func main() {
 		appLogger.Error("failed to connect to auth service", "operation", "bootstrap.grpc_connect", "addr", authAddr, "error", err.Error())
 		os.Exit(1)
 	}
-	defer authConn.Close()
+	defer func() { _ = authConn.Close() }()
 
 	vitaminsConn, err := grpc.NewClient(vitaminsAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		appLogger.Error("failed to connect to vitamins service", "operation", "bootstrap.grpc_connect", "addr", vitaminsAddr, "error", err.Error())
 		os.Exit(1)
 	}
-	defer vitaminsConn.Close()
+	defer func() { _ = vitaminsConn.Close() }()
 
 	analyticsConn, err := grpc.NewClient(analyticsAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		appLogger.Error("failed to connect to analytics service", "operation", "bootstrap.grpc_connect", "addr", analyticsAddr, "error", err.Error())
 		os.Exit(1)
 	}
-	defer analyticsConn.Close()
+	defer func() { _ = analyticsConn.Close() }()
 
 	authClient := authv1.NewAuthServiceClient(authConn)
 	vitaminsClient := vitaminsv1.NewVitaminsServiceClient(vitaminsConn)
@@ -94,7 +94,7 @@ func main() {
 				"error", err.Error())
 			os.Exit(1)
 		}
-		defer pub.Close()
+		defer func() { _ = pub.Close() }()
 		analyticsHandler = analyticsHandler.WithEventPublisher(pub)
 		appLogger.Info("analytics ingest uses rabbitmq", "operation", "bootstrap.rabbitmq_publisher")
 	}
@@ -199,8 +199,9 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:    ":" + httpPort,
-		Handler: r,
+		Addr:              ":" + httpPort,
+		Handler:           r,
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 
 	go func() {

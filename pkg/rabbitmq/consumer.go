@@ -29,28 +29,28 @@ func NewConsumerWithBindings(url, queue, exchange string, routingKeys []string, 
 
 	ch, err := conn.Channel()
 	if err != nil {
-		conn.Close()
+		_ = conn.Close()
 		return nil, fmt.Errorf("rabbitmq channel: %w", err)
 	}
 
 	if exchange != "" {
 		if err := ch.ExchangeDeclare(exchange, "topic", true, false, false, false, nil); err != nil {
-			ch.Close()
-			conn.Close()
+			_ = ch.Close()
+			_ = conn.Close()
 			return nil, fmt.Errorf("declare exchange: %w", err)
 		}
 	}
 
 	if _, err = ch.QueueDeclare(queue, true, false, false, false, nil); err != nil {
-		ch.Close()
-		conn.Close()
+		_ = ch.Close()
+		_ = conn.Close()
 		return nil, fmt.Errorf("declare queue: %w", err)
 	}
 
 	for _, key := range routingKeys {
 		if err := ch.QueueBind(queue, key, exchange, false, nil); err != nil {
-			ch.Close()
-			conn.Close()
+			_ = ch.Close()
+			_ = conn.Close()
 			return nil, fmt.Errorf("bind queue %s to %s: %w", queue, key, err)
 		}
 	}

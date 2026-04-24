@@ -11,8 +11,8 @@ import (
 type CheckFunc func(ctx context.Context) error
 
 type Checker struct {
-	mu       sync.RWMutex
-	liveness map[string]CheckFunc
+	mu        sync.RWMutex
+	liveness  map[string]CheckFunc
 	readiness map[string]CheckFunc
 }
 
@@ -36,7 +36,7 @@ func (c *Checker) AddReadiness(name string, fn CheckFunc) {
 }
 
 type result struct {
-	Status string `json:"status"`
+	Status string            `json:"status"`
 	Checks map[string]string `json:"checks,omitempty"`
 }
 

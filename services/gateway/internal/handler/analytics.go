@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/csv"
 	"encoding/json"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -202,7 +203,7 @@ func (h *AnalyticsHandler) SetConsent(c *gin.Context) {
 		"user_id", userID,
 		"consent", req.Consent,
 	)
-	c.JSON(http.StatusOK, consentResponseJSON{Consent: req.Consent})
+	c.JSON(http.StatusOK, consentResponseJSON(req))
 }
 
 func (h *AnalyticsHandler) GetConsent(c *gin.Context) {
@@ -230,8 +231,8 @@ func (h *AnalyticsHandler) Export(c *gin.Context) {
 		To:        strPtr(c.Query("to")),
 		EventName: strPtr(c.Query("event")),
 		UserId:    parseInt64Ptr(c.Query("user_id")),
-		Limit:     int32(clampInt(parseIntDefault(c.Query("limit"), 10000), 1, 100000)),
-		Offset:    int32(maxInt(parseIntDefault(c.Query("offset"), 0), 0)),
+		Limit:     safeInt32(clampInt(parseIntDefault(c.Query("limit"), 10000), 1, 100000)),
+		Offset:    safeInt32(maxInt(parseIntDefault(c.Query("offset"), 0), 0)),
 	}
 	format := strings.ToLower(strings.TrimSpace(c.DefaultQuery("format", "jsonl")))
 
@@ -396,4 +397,14 @@ func strPtr(v string) *string {
 		return nil
 	}
 	return &value
+}
+
+func safeInt32(v int) int32 {
+	if v > math.MaxInt32 {
+		return math.MaxInt32
+	}
+	if v < math.MinInt32 {
+		return math.MinInt32
+	}
+	return int32(v)
 }

@@ -27,13 +27,13 @@ func NewPublisher(url string, logger *slog.Logger) (*Publisher, error) {
 
 	ch, err := conn.Channel()
 	if err != nil {
-		conn.Close()
+		_ = conn.Close()
 		return nil, fmt.Errorf("rabbitmq channel: %w", err)
 	}
 
 	if err := ch.ExchangeDeclare(ExchangeEvents, "topic", true, false, false, false, nil); err != nil {
-		ch.Close()
-		conn.Close()
+		_ = ch.Close()
+		_ = conn.Close()
 		return nil, fmt.Errorf("declare exchange: %w", err)
 	}
 

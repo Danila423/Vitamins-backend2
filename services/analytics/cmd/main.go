@@ -38,20 +38,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	grpcPort := os.Getenv("GRPC_PORT")
-	if grpcPort == "" {
-		grpcPort = "50053"
-	}
+	grpcPort := envOrDefault("GRPC_PORT", "50053")
+	metricsPort := envOrDefault("METRICS_PORT", "9100")
 
-	metricsPort := os.Getenv("METRICS_PORT")
-	if metricsPort == "" {
-		metricsPort = "9100"
-	}
-
-	serviceName := os.Getenv("SERVICE_NAME")
-	if serviceName == "" {
-		serviceName = "analytics-service"
-	}
+	serviceName := envOrDefault("SERVICE_NAME", "analytics-service")
 
 	appLogger := logger.New(logger.Config{
 		Level:          os.Getenv("LOG_LEVEL"),
@@ -86,9 +76,10 @@ func main() {
 	)
 	analyticsv1.RegisterAnalyticsServiceServer(srv, analyticsgrpc.NewServer(svc))
 
-	lis, err := net.Listen("tcp", ":"+grpcPort)
+	lc := net.ListenConfig{}
+	lis, err := lc.Listen(ctx, "tcp", ":"+grpcPort)
 	if err != nil {
-		slog.Error("failed to listen", "port", grpcPort, "error", err)
+		slog.Error("failed to listen", slog.String("port", grpcPort), slog.Any("error", err))
 		os.Exit(1)
 	}
 
@@ -107,14 +98,14 @@ func main() {
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	go func() {
-		slog.Info("metrics server starting", "port", metricsPort)
+		slog.Info("metrics server starting", slog.String("port", metricsPort))
 		if err := metricsSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			slog.Error("metrics server error", "error", err)
 		}
 	}()
 
 	go func() {
-		slog.Info("gRPC server starting", "port", grpcPort)
+		slog.Info("gRPC server starting", slog.String("port", grpcPort))
 		if err := srv.Serve(lis); err != nil {
 			slog.Error("gRPC server failed", "error", err)
 		}
@@ -133,7 +124,7 @@ func main() {
 			slog.Error("failed to create rabbitmq consumer", "error", err)
 			os.Exit(1)
 		}
-		defer consumer.Close()
+		defer func() { _ = consumer.Close() }()
 
 		handler := func(ctx context.Context, body []byte) error {
 			var batch rabbitmq.AnalyticsBatch
@@ -186,4 +177,11 @@ func main() {
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdownCancel()
 	_ = metricsSrv.Shutdown(shutdownCtx)
+}
+
+func envOrDefault(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
 }

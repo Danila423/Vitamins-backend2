@@ -104,7 +104,7 @@ func run() error {
 			return fmt.Errorf("rabbitmq publisher: %w", err)
 		}
 		rmqPublisher = pub
-		defer pub.Close()
+		defer func() { _ = pub.Close() }()
 		m = authmailer.NewPublisherMailer(pub, log)
 		log.Info("rabbitmq publisher mailer configured", "url_masked", maskAMQP(rmqURL))
 	} else if host := os.Getenv("SMTP_HOST"); host != "" {
@@ -162,7 +162,8 @@ func run() error {
 	)
 	authv1.RegisterAuthServiceServer(srv, authgrpc.NewServer(svc))
 
-	lis, err := net.Listen("tcp", ":"+grpcPort)
+	lc := net.ListenConfig{}
+	lis, err := lc.Listen(ctx, "tcp", ":"+grpcPort)
 	if err != nil {
 		return fmt.Errorf("listen: %w", err)
 	}
@@ -174,7 +175,7 @@ func run() error {
 		health.AddReadiness("redis", func(ctx context.Context) error {
 			if addr := os.Getenv("REDIS_ADDR"); addr != "" {
 				client := redis.NewClient(&redis.Options{Addr: addr, Password: os.Getenv("REDIS_PASSWORD")})
-				defer client.Close()
+				defer func() { _ = client.Close() }()
 				return client.Ping(ctx).Err()
 			}
 			return nil

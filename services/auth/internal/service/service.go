@@ -20,9 +20,9 @@ import (
 	"errors"
 	"time"
 
+	"vitamins-backend_2/pkg/db"
 	"vitamins-backend_2/pkg/jwt"
 	"vitamins-backend_2/services/auth/internal/validation"
-	"vitamins-backend_2/pkg/db"
 )
 
 // --- re-exports from sub-packages so every other file in this package, plus

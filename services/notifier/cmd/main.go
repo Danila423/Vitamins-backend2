@@ -65,7 +65,7 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("rabbitmq consumer: %w", err)
 	}
-	defer consumer.Close()
+	defer func() { _ = consumer.Close() }()
 
 	handler := func(ctx context.Context, body []byte) error {
 		var evt rabbitmq.PasswordResetEvent

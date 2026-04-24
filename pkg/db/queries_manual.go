@@ -2,6 +2,7 @@ package db
 
 import "context"
 
+//nolint:gosec // G101: this is a SQL query, not hardcoded credentials.
 const updateUserPassword = `-- name: UpdateUserPassword :exec
 UPDATE users
 SET password_hash = $1

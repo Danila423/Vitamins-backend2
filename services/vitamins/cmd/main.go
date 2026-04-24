@@ -77,7 +77,8 @@ func main() {
 	)
 	vitaminsv1.RegisterVitaminsServiceServer(grpcServer, vitgrpc.NewServer(svc))
 
-	lis, err := net.Listen("tcp", ":"+grpcPort)
+	lc := net.ListenConfig{}
+	lis, err := lc.Listen(ctx, "tcp", ":"+grpcPort)
 	if err != nil {
 		appLogger.Error("failed to listen", "port", grpcPort, "error", err.Error())
 		os.Exit(1)

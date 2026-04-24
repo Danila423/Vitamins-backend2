@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"math"
 
 	analyticsv1 "vitamins-backend_2/gen/go/analytics/v1"
 	"vitamins-backend_2/services/analytics/internal/service"
@@ -62,8 +63,8 @@ func (s *Server) Ingest(ctx context.Context, req *analyticsv1.IngestRequest) (*a
 	}
 
 	return &analyticsv1.IngestResponse{
-		Accepted:     int32(resp.Accepted),
-		Deduplicated: int32(resp.Deduplicated),
+		Accepted:     safeInt32(resp.Accepted),
+		Deduplicated: safeInt32(resp.Deduplicated),
 	}, nil
 }
 
@@ -115,6 +116,16 @@ func (s *Server) Export(ctx context.Context, req *analyticsv1.ExportRequest) (*a
 	}
 
 	return &analyticsv1.ExportResponse{Rows: pbRows}, nil
+}
+
+func safeInt32(v int) int32 {
+	if v > math.MaxInt32 {
+		return math.MaxInt32
+	}
+	if v < math.MinInt32 {
+		return math.MinInt32
+	}
+	return int32(v)
 }
 
 func mapError(err error) error {

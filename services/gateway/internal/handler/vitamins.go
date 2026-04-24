@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"math"
 	"strconv"
 	"strings"
 
@@ -69,7 +70,7 @@ type reminderResponseJSON struct {
 	Note                    string                      `json:"note"`
 	IsActive                bool                        `json:"is_active"`
 	Catalog                 *catalogItemJSON            `json:"catalog,omitempty"`
-	Course                  courseResponseJSON           `json:"course"`
+	Course                  courseResponseJSON          `json:"course"`
 	Schedule                scheduleResponseJSON        `json:"schedule"`
 	NotificationPreferences notificationPreferencesJSON `json:"notification_preferences"`
 	ContentOverrides        contentOverridesJSON        `json:"content_overrides"`
@@ -101,10 +102,10 @@ type updateReminderRequestJSON struct {
 }
 
 type courseInputJSON struct {
-	StartDate    string          `json:"start_date"`
-	EndDate      *string         `json:"end_date"`
-	DurationDays *int            `json:"duration_days"`
-	Timezone     string          `json:"timezone"`
+	StartDate    string  `json:"start_date"`
+	EndDate      *string `json:"end_date"`
+	DurationDays *int    `json:"duration_days"`
+	Timezone     string  `json:"timezone"`
 }
 
 type scheduleInputJSON struct {
@@ -154,15 +155,15 @@ func (h *VitaminsHandler) CreateReminder(c *gin.Context) {
 	}
 	ctx := c.Request.Context()
 	req := &vitaminsv1.CreateReminderRequest{
-		UserId:    userID,
-		CatalogId: r.CatalogID,
-		Name:      r.Name,
-		Form:      r.Form,
-		Dose:      r.Dose,
-		Condition: r.Condition,
-		Note:      r.Note,
-		Course:    courseInputToProto(&r.Course),
-		Schedule:  scheduleInputToProto(&r.Schedule),
+		UserId:                  userID,
+		CatalogId:               r.CatalogID,
+		Name:                    r.Name,
+		Form:                    r.Form,
+		Dose:                    r.Dose,
+		Condition:               r.Condition,
+		Note:                    r.Note,
+		Course:                  courseInputToProto(&r.Course),
+		Schedule:                scheduleInputToProto(&r.Schedule),
 		NotificationPreferences: notifPrefsInputToProto(&r.NotificationPreferences),
 		ContentOverrides:        contentOverridesInputToProto(&r.ContentOverrides),
 	}
@@ -471,7 +472,7 @@ func reminderFromProto(pb *vitaminsv1.ReminderResponse) reminderResponseJSON {
 	if n := pb.GetNotificationPreferences(); n != nil {
 		r.NotificationPreferences = notificationPreferencesJSON{
 			IncludeDose:              n.GetIncludeDose(),
-			IncludeFrequency:        n.GetIncludeFrequency(),
+			IncludeFrequency:         n.GetIncludeFrequency(),
 			IncludeInteraction:       n.GetIncludeInteraction(),
 			IncludeCompatibility:     n.GetIncludeCompatibility(),
 			IncludeCondition:         n.GetIncludeCondition(),
@@ -498,7 +499,7 @@ func courseInputToProto(c *courseInputJSON) *vitaminsv1.CourseInput {
 		Timezone:  c.Timezone,
 	}
 	if c.DurationDays != nil {
-		d := int32(*c.DurationDays)
+		d := safeVitInt32(*c.DurationDays)
 		p.DurationDays = &d
 	}
 	return p
@@ -537,4 +538,14 @@ func contentOverridesInputToProto(co *contentOverridesInputJSON) *vitaminsv1.Con
 		CompatibilityTextOverride:     co.CompatibilityTextOverride,
 		ContraindicationsTextOverride: co.ContraindicationsTextOverride,
 	}
+}
+
+func safeVitInt32(v int) int32 {
+	if v > math.MaxInt32 {
+		return math.MaxInt32
+	}
+	if v < math.MinInt32 {
+		return math.MinInt32
+	}
+	return int32(v)
 }
