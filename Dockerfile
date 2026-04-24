@@ -2,19 +2,20 @@ FROM golang:1.25 AS build
 
 WORKDIR /app
 
-# 1. Кладём только модули
 COPY go.mod go.sum ./
 RUN go mod download
 
-# 2. Кладём весь код
 COPY . .
 
-# 3. Собираем
-RUN CGO_ENABLED=0 GOOS=linux go build -o api ./cmd/api
+RUN CGO_ENABLED=0 GOOS=linux go build -o /out/gateway    ./services/gateway/cmd && \
+    CGO_ENABLED=0 GOOS=linux go build -o /out/auth        ./services/auth/cmd && \
+    CGO_ENABLED=0 GOOS=linux go build -o /out/vitamins    ./services/vitamins/cmd && \
+    CGO_ENABLED=0 GOOS=linux go build -o /out/analytics   ./services/analytics/cmd && \
+    CGO_ENABLED=0 GOOS=linux go build -o /out/notifier    ./services/notifier/cmd
 
 FROM alpine:3
 WORKDIR /app
 RUN apk add --no-cache ca-certificates
-COPY --from=build /app/api .
+COPY --from=build /out/ .
 EXPOSE 8080
-CMD ["./api"]
+CMD ["./gateway"]
