@@ -1,18 +1,3 @@
-// Package service implements the vitamin reminders use-case (catalog,
-// per-user reminders with their dosing schedules and notification settings).
-//
-// The service layer is split for readability into a few files inside this
-// same package:
-//
-//   - service.go         — `Service` type, constructors, the catalog
-//     listing and the response-building helpers shared by all reminder
-//     methods. This is the entry point.
-//   - reminders.go       — Create/List/Get/Update/SetActive operations.
-//   - notifications.go   — internal types and helpers for merging
-//     notification preferences and content overrides.
-//
-// The HTTP-layer JSON shapes (see types.go) are part of the public API used
-// by the frontend; do not rename fields without coordinating a migration.
 package service
 
 import (
@@ -35,10 +20,7 @@ var (
 	ErrTimezoneRequired = errors.New("TIMEZONE_REQUIRED")
 )
 
-// ServiceConfig groups tunable options for the vitamins use-case service.
 type ServiceConfig struct {
-	// ListParallelism caps the number of concurrent reminder builds inside
-	// ListReminders. Zero or negative falls back to defaultListParallelism.
 	ListParallelism int
 }
 
@@ -54,9 +36,6 @@ func NewService(q *db.Queries, pool *pgxpool.Pool) *Service {
 	return NewServiceWithConfig(q, pool, ServiceConfig{})
 }
 
-// NewServiceWithConfig wires the default sqlc-backed repository with explicit
-// configuration. Currently only ListParallelism is honored; more knobs may be
-// added without changing the constructor signature.
 func NewServiceWithConfig(q *db.Queries, pool *pgxpool.Pool, cfg ServiceConfig) *Service {
 	repo := NewRepository(q, pool)
 	s := NewServiceWithDeps(repo, repo)
@@ -91,8 +70,6 @@ func (s *Service) ListCatalog(ctx context.Context) ([]CatalogItem, error) {
 	return result, nil
 }
 
-// resolveCatalog turns the user-provided (catalogID, name) pair into a
-// concrete (catalogID pgtype.Int8, name string) ready for sqlc.
 func (s *Service) resolveCatalog(ctx context.Context, catalogID *int64, name *string) (pgtype.Int8, string, error) {
 	if catalogID != nil {
 		item, err := s.repo.GetVitaminCatalogByID(ctx, *catalogID)
@@ -124,15 +101,10 @@ func (s *Service) resolveCatalog(ctx context.Context, catalogID *int64, name *st
 	return pgtype.Int8{}, finalName, nil
 }
 
-// buildReminder is the convenience wrapper that builds a response from the
-// non-transactional repository.
 func (s *Service) buildReminder(ctx context.Context, uv db.UserVitamin) (ReminderResponse, error) {
 	return s.buildReminderWith(ctx, s.repo, uv)
 }
 
-// buildReminderWith assembles the response using the provided repository, which
-// may be a transactional one. This lets Create/Update return data committed
-// inside the same transaction without an extra round-trip read after commit.
 func (s *Service) buildReminderWith(ctx context.Context, repo ReminderRepository, uv db.UserVitamin) (ReminderResponse, error) {
 	course, err := repo.GetVitaminCourseByUserVitaminID(ctx, uv.ID)
 	if err != nil {

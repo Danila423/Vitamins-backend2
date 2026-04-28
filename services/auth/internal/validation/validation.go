@@ -1,8 +1,3 @@
-// Package validation owns the small, pure email/password validation rules
-// used by the auth service. Keeping them in a dedicated sub-package makes the
-// unit tests a one-file affair and keeps the top-level service package from
-// ballooning. The parent service package re-exports these symbols so callers
-// (AuthService, ProfileService, handlers) keep using the familiar names.
 package validation
 
 import (

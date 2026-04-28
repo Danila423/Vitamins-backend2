@@ -1,6 +1,3 @@
-// Package service implements the analytics use-cases (ingest, consent and
-// admin export). Keeping it separate from the HTTP handler lets tests target
-// the business logic directly with fakes.
 package service
 
 import (

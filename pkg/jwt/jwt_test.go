@@ -125,8 +125,6 @@ func TestJWTManager_GenerateTokenPairWithJTIPreservesID(t *testing.T) {
 	}
 }
 
-// helpers (intentionally tiny — avoid pulling extra deps in jwt unit tests)
-
 func itoa(n int64) string {
 	if n == 0 {
 		return "0"

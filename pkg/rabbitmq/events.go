@@ -24,9 +24,6 @@ type PasswordChangeEvent struct {
 	Code    string `json:"code"`
 }
 
-// AnalyticsEventInput mirrors service.EventInput fields so the payload is
-// identical to what the gateway already accepts from the frontend. Kept here
-// (not imported from services/analytics) to avoid cross-service dependencies.
 type AnalyticsEventInput struct {
 	EventID     string         `json:"event_id"`
 	OccurredAt  string         `json:"occurred_at"`
@@ -40,8 +37,6 @@ type AnalyticsEventInput struct {
 	Platform    *string        `json:"platform,omitempty"`
 }
 
-// AnalyticsBatch is the envelope published to RabbitMQ when the gateway
-// decouples analytics ingestion from the analytics-service gRPC call.
 type AnalyticsBatch struct {
 	TokenUserID *int64                `json:"token_user_id,omitempty"`
 	BatchID     *string               `json:"batch_id,omitempty"`

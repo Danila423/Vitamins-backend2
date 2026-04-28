@@ -18,9 +18,6 @@ import (
 	"vitamins-backend_2/services/gateway/internal/middleware"
 )
 
-// EventPublisher is the minimal contract required by AnalyticsHandler to
-// decouple ingestion from the synchronous gRPC call. It is satisfied by
-// *rabbitmq.Publisher.
 type EventPublisher interface {
 	Publish(ctx context.Context, exchange, routingKey string, msg any) error
 }
@@ -34,9 +31,6 @@ func NewAnalyticsHandler(client analyticsv1.AnalyticsServiceClient) *AnalyticsHa
 	return &AnalyticsHandler{client: client}
 }
 
-// WithEventPublisher enables async ingestion via RabbitMQ. When set, the
-// handler publishes the batch to the broker and returns immediately instead
-// of calling analytics-service synchronously.
 func (h *AnalyticsHandler) WithEventPublisher(p EventPublisher) *AnalyticsHandler {
 	h.publisher = p
 	return h

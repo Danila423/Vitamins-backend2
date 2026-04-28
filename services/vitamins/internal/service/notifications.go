@@ -8,11 +8,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// notificationPrefsInput / notificationOverridesInput are internal value
-// objects used by the service layer to build sqlc parameters for both create
-// and update flows. They are intentionally not exported — handlers consume the
-// JSON-side `NotificationPreferencesInput` / `ContentOverridesInput` types
-// from types.go.
 type notificationPrefsInput struct {
 	IncludeDose              bool
 	IncludeFrequency         bool

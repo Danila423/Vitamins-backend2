@@ -8,15 +8,10 @@ import (
 	"vitamins-backend_2/pkg/rabbitmq"
 )
 
-// eventPublisher is the minimal publisher contract we need, so we don't depend
-// on the concrete *rabbitmq.Publisher type and can mock it in tests.
 type eventPublisher interface {
 	Publish(ctx context.Context, exchange, routingKey string, msg any) error
 }
 
-// PublisherMailer implements service.Mailer by publishing a message to
-// RabbitMQ instead of delivering it synchronously. The actual e-mail delivery
-// is performed by the notifier worker that consumes these events.
 type PublisherMailer struct {
 	pub    eventPublisher
 	logger *slog.Logger

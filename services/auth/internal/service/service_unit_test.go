@@ -227,17 +227,13 @@ func TestService_Refresh(t *testing.T) {
 		svc := NewServiceWithDeps(&fakeUserRepo{}, jwt, nil, redis, PasswordResetConfig{})
 
 		first, err := svc.Register(context.Background(), "reuse@test.local", "Passw0rd1")
-		// Register in this setup needs a repo that creates the user
 		_ = first
 		_ = err
 
-		// Directly test rotation by issuing a pair and reusing refresh.
 		redis.data = map[string]string{}
 		redis.setnxTaken = map[string]bool{}
-		// Issue and rotate
 		pair, err := jwt.GenerateTokenPair(55)
 		require.NoError(t, err)
-		// Pretend the pair is active
 		parsed, err := jwt.ParseWithType(pair.RefreshToken, TokenTypeRefresh)
 		require.NoError(t, err)
 		require.NoError(t, redis.Set(context.Background(), refreshAllowKey(parsed.ID), "55", time.Minute))
@@ -246,7 +242,6 @@ func TestService_Refresh(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, rotated)
 
-		// Second use of the same (now revoked) refresh token must fail.
 		_, err = svc.Refresh(context.Background(), pair.RefreshToken)
 		require.ErrorIs(t, err, ErrInvalidCredentials)
 	})

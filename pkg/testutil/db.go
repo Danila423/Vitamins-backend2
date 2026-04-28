@@ -19,10 +19,6 @@ var (
 	schemaErr  error
 )
 
-// NewTestPool opens a pool to TEST_DATABASE_URL after verifying the DSN is safe
-// (db name must contain "test"), applies embedded migrations exactly once per
-// process, and registers Close on test cleanup. Tests must call ResetTables
-// between runs to start from a known empty state.
 func NewTestPool(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 
@@ -46,15 +42,6 @@ func NewTestPool(t *testing.T) *pgxpool.Pool {
 	return pool
 }
 
-// ResetTables truncates all application tables. Before issuing the destructive
-// statement it re-checks two safety properties at runtime, in addition to the
-// DSN-based whitelist enforced by NewTestPool:
-//   - the connected database name still contains "test"
-//   - the host (from inet_server_addr / current host environment) is not a
-//     production-looking address.
-//
-// This makes it much harder to accidentally point integration tests at a real
-// database via a misconfigured pool.
 func ResetTables(t *testing.T, pool *pgxpool.Pool) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -70,8 +57,6 @@ func ResetTables(t *testing.T, pool *pgxpool.Pool) {
 
 	var serverAddr *string
 	if err := pool.QueryRow(ctx, "SELECT host(inet_server_addr())::text").Scan(&serverAddr); err != nil {
-		// Unix sockets / shared servers may not expose inet_server_addr; that's
-		// acceptable — we already checked the DSN and current_database.
 		serverAddr = nil
 	}
 	if serverAddr != nil {
@@ -106,8 +91,6 @@ func isProdLikeHost(host string) bool {
 	if host == "127.0.0.1" || host == "::1" || host == "localhost" {
 		return false
 	}
-	// Treat private network ranges and docker-compose names containing "test"
-	// as safe; everything else is rejected.
 	if strings.HasPrefix(host, "10.") || strings.HasPrefix(host, "192.168.") || strings.HasPrefix(host, "172.") {
 		return false
 	}

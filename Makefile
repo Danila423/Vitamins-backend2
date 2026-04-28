@@ -3,7 +3,9 @@
 	docker-build docker-up docker-down
 
 DOCKER_GO_IMAGE ?= golang:1.25-bookworm
-DOCKER_TEST_DB_CONTAINER ?= $(shell docker ps --filter "name=db" --format "{{.Names}}" | grep -E "^(deploy-db-1|vitamins-backend_2_full-db-1)$$" | head -n 1)
+COMPOSE_FILE ?= deploy/docker-compose.yml
+DOCKER_COMPOSE ?= docker compose -f $(COMPOSE_FILE)
+DOCKER_TEST_DB_CONTAINER ?= $(shell $(DOCKER_COMPOSE) ps -q db 2>/dev/null)
 DOCKER_TEST_NETWORK ?= $(shell docker inspect $(DOCKER_TEST_DB_CONTAINER) --format '{{range $$k, $$v := .NetworkSettings.Networks}}{{$$k}}{{end}}' 2>/dev/null)
 DOCKER_TEST_DB_NAME ?= vitamins_test
 DOCKER_TEST_DATABASE_URL ?= postgres://vitamins:vitamins@db:5432/$(DOCKER_TEST_DB_NAME)?sslmode=disable
@@ -19,14 +21,11 @@ test-cache:
 	@mkdir -p .cache/go-mod .cache/go-build
 
 test-db-up:
-	@docker compose up -d db 2>/dev/null || true
-	@docker compose -f deploy/docker-compose.yml up -d db 2>/dev/null || true
+	@$(DOCKER_COMPOSE) up -d db
 
 test-db-create: test-db-up
-	@(docker compose exec -T db psql -U vitamins -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '$(DOCKER_TEST_DB_NAME)'" 2>/dev/null || \
-		docker compose -f deploy/docker-compose.yml exec -T db psql -U vitamins -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '$(DOCKER_TEST_DB_NAME)'" 2>/dev/null) | grep -q 1 || \
-	(docker compose exec -T db psql -U vitamins -d postgres -c "CREATE DATABASE $(DOCKER_TEST_DB_NAME) OWNER vitamins;" 2>/dev/null || \
-		docker compose -f deploy/docker-compose.yml exec -T db psql -U vitamins -d postgres -c "CREATE DATABASE $(DOCKER_TEST_DB_NAME) OWNER vitamins;" 2>/dev/null)
+	@$(DOCKER_COMPOSE) exec -T db psql -U vitamins -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '$(DOCKER_TEST_DB_NAME)'" | grep -q 1 || \
+	$(DOCKER_COMPOSE) exec -T db psql -U vitamins -d postgres -c "CREATE DATABASE $(DOCKER_TEST_DB_NAME) OWNER vitamins;"
 
 test-db-ready: test-db-create
 	@echo "test database is ready: $(DOCKER_TEST_DB_NAME)"
@@ -41,6 +40,7 @@ test-unit: test-cache
 		/bin/sh -lc 'export PATH=/usr/local/go/bin:$$PATH; /usr/local/go/bin/go install gotest.tools/gotestsum@$(GOTESTSUM_VERSION); /go/bin/gotestsum --format $(GOTESTSUM_FORMAT) -- -count=1 ./...'
 
 test-integration: test-db-ready test-cache
+	@test -n "$(DOCKER_TEST_NETWORK)" || (echo "Docker test network not found. Run: make test-db-up" >&2; exit 1)
 	docker run --rm \
 		--network $(DOCKER_TEST_NETWORK) \
 		-v "$(PWD)":/app \
@@ -52,6 +52,7 @@ test-integration: test-db-ready test-cache
 		/bin/sh -lc 'export PATH=/usr/local/go/bin:$$PATH; /usr/local/go/bin/go install gotest.tools/gotestsum@$(GOTESTSUM_VERSION); /go/bin/gotestsum --format $(GOTESTSUM_FORMAT) -- -tags=integration -count=1 -p $(GO_TEST_P) ./...'
 
 test-e2e: test-db-ready test-cache
+	@test -n "$(DOCKER_TEST_NETWORK)" || (echo "Docker test network not found. Run: make test-db-up" >&2; exit 1)
 	docker run --rm \
 		--network $(DOCKER_TEST_NETWORK) \
 		-v "$(PWD)":/app \
@@ -105,10 +106,10 @@ build-analytics:
 build-all: build-gateway build-auth build-vitamins build-analytics
 
 docker-build:
-	docker compose -f deploy/docker-compose.yml build
+	$(DOCKER_COMPOSE) build
 
 docker-up:
-	docker compose -f deploy/docker-compose.yml up -d
+	$(DOCKER_COMPOSE) up -d
 
 docker-down:
-	docker compose -f deploy/docker-compose.yml down
+	$(DOCKER_COMPOSE) down

@@ -16,9 +16,6 @@ import (
 	appLogger "vitamins-backend_2/pkg/logger"
 )
 
-// PasswordResetService handles the two password flows (reset + change). It
-// requires a mailer and a redis store; without them the flows return the
-// corresponding NOT_CONFIGURED error.
 type PasswordResetService struct {
 	users  UserRepository
 	mailer Mailer
@@ -162,8 +159,6 @@ func (s *PasswordResetService) ConfirmPasswordReset(ctx context.Context, resetTo
 	}
 	return nil
 }
-
-// --- Helpers shared with the password change flow ---
 
 func generateNumericCode(length int) (string, error) {
 	if length <= 0 {

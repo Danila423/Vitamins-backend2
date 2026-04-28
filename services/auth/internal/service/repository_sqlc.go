@@ -10,10 +10,6 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-// sqlcUserRepository adapts the sqlc-generated *db.Queries to the domain
-// UserRepository port. It also maps driver-specific errors (pgx.ErrNoRows,
-// unique-violation 23505) to domain errors so the service layer stays free
-// of pgx imports.
 type sqlcUserRepository struct {
 	q *db.Queries
 }

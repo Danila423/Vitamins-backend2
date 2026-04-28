@@ -250,7 +250,6 @@ func getDuration(key string, def time.Duration) (time.Duration, error) {
 }
 
 func maskAMQP(url string) string {
-	// amqp://user:pass@host:port → amqp://***@host:port
 	at := -1
 	for i := len(url) - 1; i >= 0; i-- {
 		if url[i] == '@' {

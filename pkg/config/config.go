@@ -8,35 +8,31 @@ import (
 )
 
 type Config struct {
-	HTTPPort         string
-	DatabaseURL      string
-	JWTSecret        string
-	LogLevel         string
-	Environment      string
-	ServiceName      string
-	ServiceVersion   string
-	AccessTokenTTL   time.Duration
-	RefreshTokenTTL  time.Duration
-	AdminToken       string
-	SMTPHost         string
-	SMTPPort         string
-	SMTPUser         string
-	SMTPPass         string
-	SMTPFrom         string
-	ResetCodeTTL     time.Duration
-	ResetSessionTTL  time.Duration
-	ResetMaxAttempts int
-	ResetRateLimit   time.Duration
-	RedisAddr        string
-	RedisPassword    string
-	RedisDB          int
-	// Parallelism configuration for vitamins.ListReminders goroutines.
+	HTTPPort                string
+	DatabaseURL             string
+	JWTSecret               string
+	LogLevel                string
+	Environment             string
+	ServiceName             string
+	ServiceVersion          string
+	AccessTokenTTL          time.Duration
+	RefreshTokenTTL         time.Duration
+	AdminToken              string
+	SMTPHost                string
+	SMTPPort                string
+	SMTPUser                string
+	SMTPPass                string
+	SMTPFrom                string
+	ResetCodeTTL            time.Duration
+	ResetSessionTTL         time.Duration
+	ResetMaxAttempts        int
+	ResetRateLimit          time.Duration
+	RedisAddr               string
+	RedisPassword           string
+	RedisDB                 int
 	VitaminsListParallelism int
 }
 
-// Load reads configuration from environment variables.
-// Returns an error instead of panicking so the caller can decide how to handle
-// misconfiguration (useful in tests and during controlled startup).
 func Load() (*Config, error) {
 	required := func(key string) (string, error) {
 		v := os.Getenv(key)
@@ -141,9 +137,6 @@ func Load() (*Config, error) {
 	}, nil
 }
 
-// MustLoad preserves the previous fail-fast behaviour for callers that do not
-// want to handle the error explicitly (for example smoke tests that rely on
-// panic semantics). New code should prefer Load.
 func MustLoad() *Config {
 	cfg, err := Load()
 	if err != nil {

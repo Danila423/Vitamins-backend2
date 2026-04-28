@@ -2,8 +2,6 @@ package service
 
 import "context"
 
-// ServiceAPI describes vitamins operations used by HTTP handlers.
-//
 //go:generate mockery --name ServiceAPI --dir . --output ../mocks --outpkg mocks --filename service_api.go
 type ServiceAPI interface {
 	ListCatalog(ctx context.Context) ([]CatalogItem, error)

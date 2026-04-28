@@ -4,8 +4,6 @@ import (
 	"context"
 )
 
-// ServiceAPI describes auth operations used by HTTP handlers.
-//
 //go:generate mockery --name ServiceAPI --dir . --output ../mocks --outpkg mocks --filename service_api.go
 type ServiceAPI interface {
 	Register(ctx context.Context, email, pw string) (*TokenPair, error)

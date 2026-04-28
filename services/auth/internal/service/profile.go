@@ -6,14 +6,10 @@ import (
 	"strings"
 )
 
-// ProfileService handles "me" endpoints: getting and updating the profile.
 type ProfileService struct {
 	users UserRepository
 }
 
-// ProfileUpdate carries optional patches for UpdateProfile. A nil pointer
-// means "field not provided" (kept as-is); an empty pointed string means
-// "set to empty".
 type ProfileUpdate struct {
 	FirstName *string
 	LastName  *string

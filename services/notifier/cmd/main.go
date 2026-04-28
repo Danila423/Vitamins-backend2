@@ -17,10 +17,6 @@ import (
 	"vitamins-backend_2/pkg/rabbitmq"
 )
 
-// Notifier is a standalone worker that consumes password reset / password
-// change events from RabbitMQ and delivers the one-time code over SMTP.
-// It exists so that the auth-service can publish asynchronously and does not
-// have to wait for (or depend on) the mail provider's availability.
 func main() {
 	if err := run(); err != nil {
 		slog.Error("fatal", "error", err)

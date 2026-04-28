@@ -6,7 +6,6 @@ import (
 	"vitamins-backend_2/pkg/db"
 )
 
-// ReminderRepository is the data port for vitamins use-cases.
 type ReminderRepository interface {
 	ListVitaminCatalog(ctx context.Context) ([]db.VitaminCatalog, error)
 	GetVitaminCatalogByID(ctx context.Context, id int64) (db.VitaminCatalog, error)
@@ -37,7 +36,6 @@ type ReminderRepository interface {
 	GetNotificationOverridesByUserVitaminID(ctx context.Context, userVitaminID int64) (db.NotificationTextOverride, error)
 }
 
-// TxManager runs a use-case block in one DB transaction.
 type TxManager interface {
 	InTx(ctx context.Context, fn func(repo ReminderRepository) error) error
 }

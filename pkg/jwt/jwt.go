@@ -1,9 +1,3 @@
-// Package jwt is the self-contained JWT sub-module of auth/service. It owns
-// the access/refresh token shapes, the HMAC-backed manager and the signing
-// method guard against "alg=none" attacks. The parent service package
-// re-exports the public names through type/const/var aliases so callers such
-// as middleware, handlers and main.go keep importing `internal/auth/service`
-// unchanged.
 package jwt
 
 import (
@@ -42,8 +36,6 @@ func NewJWTManager(secret string, a, r time.Duration) *JWTManager {
 	return &JWTManager{secret: []byte(secret), accessTTL: a, refreshTTL: r}
 }
 
-// RefreshTTL exposes the configured refresh token lifetime.
-// Needed by services that maintain an allow/denylist in cache.
 func (j *JWTManager) RefreshTTL() time.Duration { return j.refreshTTL }
 
 func (j *JWTManager) GenerateTokenPair(uid int64) (*TokenPair, error) {
@@ -58,8 +50,6 @@ func (j *JWTManager) GenerateTokenPair(uid int64) (*TokenPair, error) {
 	return &TokenPair{AccessToken: a, RefreshToken: r}, nil
 }
 
-// GenerateTokenPairWithJTI issues a pair where the refresh token carries a
-// predetermined jti. Returns pair and refresh jti (same one that was passed in).
 func (j *JWTManager) GenerateTokenPairWithJTI(uid int64, refreshJTI string) (*TokenPair, error) {
 	a, _, err := j.generate(uid, j.accessTTL, TokenTypeAccess)
 	if err != nil {
@@ -72,9 +62,6 @@ func (j *JWTManager) GenerateTokenPairWithJTI(uid int64, refreshJTI string) (*To
 	return &TokenPair{AccessToken: a, RefreshToken: r}, nil
 }
 
-// NewJTI returns a cryptographically random 128-bit hex-encoded identifier
-// suitable for use as a refresh-token `jti`. Exported so the service package
-// can maintain a Redis allow-list keyed by the same jti that JWTManager signs.
 func NewJTI() (string, error) {
 	var b [16]byte
 	if _, err := rand.Read(b[:]); err != nil {
@@ -112,8 +99,6 @@ func (j *JWTManager) generateWithClaims(uid int64, ttl time.Duration, tokenType,
 	return t.SignedString(j.secret)
 }
 
-// Parse validates signature, algorithm and claims and returns parsed claims.
-// It rejects "alg=none" and any non-HMAC signing method.
 func (j *JWTManager) Parse(tok string) (*Claims, error) {
 	t, err := jwtlib.ParseWithClaims(tok, &Claims{}, func(t *jwtlib.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwtlib.SigningMethodHMAC); !ok {
@@ -131,9 +116,6 @@ func (j *JWTManager) Parse(tok string) (*Claims, error) {
 	return c, nil
 }
 
-// ParseWithType parses and ensures the token has the expected type.
-// Legacy tokens without a type are accepted only when expecting an access token,
-// to preserve backward compatibility with clients that already hold tokens.
 func (j *JWTManager) ParseWithType(tok, expected string) (*Claims, error) {
 	c, err := j.Parse(tok)
 	if err != nil {

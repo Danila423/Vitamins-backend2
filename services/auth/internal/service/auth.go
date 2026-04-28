@@ -11,18 +11,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// AuthService handles register/login/refresh flows. It only depends on the
-// user repository, token provider and (optionally) a Redis store used for
-// refresh token rotation + denylist.
 type AuthService struct {
 	users  UserRepository
 	tokens *JWTManager
 	redis  RedisStore
 }
 
-// refreshAllowKey stores the jti of a currently valid refresh token for a user.
-// On rotation we delete the old jti from this set and write the new one; a
-// refresh token whose jti is not in the set is considered revoked/replayed.
 func refreshAllowKey(jti string) string {
 	return "auth:refresh:jti:" + jti
 }
@@ -74,12 +68,6 @@ func (s *AuthService) Login(ctx context.Context, email, pw string) (*TokenPair, 
 	return s.issueTokens(ctx, u.ID)
 }
 
-// Refresh implements refresh-token rotation with a best-effort denylist.
-// The provided token must be of type "refresh" (legacy untyped tokens are
-// rejected). When a Redis store is configured, the jti is required to be in
-// the allow-list; on success the old jti is removed and the new one stored.
-// Without Redis, rotation falls back to plain signature validation to keep
-// deployments without a cache working (signature + expiry still enforced).
 func (s *AuthService) Refresh(ctx context.Context, token string) (*TokenPair, error) {
 	c, err := s.tokens.ParseWithType(token, TokenTypeRefresh)
 	if err != nil {

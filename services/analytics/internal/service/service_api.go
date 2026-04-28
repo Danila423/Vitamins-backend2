@@ -2,8 +2,6 @@ package service
 
 import "context"
 
-// ServiceAPI describes analytics operations used by handlers.
-//
 //go:generate mockery --name ServiceAPI --dir . --output ../mocks --outpkg mocks --filename service_api.go
 type ServiceAPI interface {
 	Ingest(ctx context.Context, tokenUserID *int64, req BatchRequest) (IngestResponse, error)

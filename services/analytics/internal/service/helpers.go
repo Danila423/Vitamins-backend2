@@ -155,9 +155,6 @@ func uuidToString(v pgtype.UUID) string {
 		strings.ToLower(hex.EncodeToString(b[10:16]))
 }
 
-// SerializeJSONL encodes a row into a newline-terminated JSON object. It is
-// used by the admin export handler; exported so the handler package can call
-// it without re-implementing the format.
 func SerializeJSONL(v any) string {
 	b, err := json.Marshal(v)
 	if err != nil {

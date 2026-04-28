@@ -13,11 +13,6 @@ import (
 //go:embed migrations/*.sql
 var embeddedMigrations embed.FS
 
-// Apply runs every embedded migration file in lexicographic order. Migrations
-// are written to be idempotent (CREATE TABLE IF NOT EXISTS, …) so they can be
-// re-applied safely. This is a deliberately small replacement for goose/migrate
-// — it keeps the runtime dependency surface minimal while letting tests apply
-// the same SQL the production database uses.
 func Apply(ctx context.Context, pool *pgxpool.Pool) error {
 	entries, err := embeddedMigrations.ReadDir("migrations")
 	if err != nil {

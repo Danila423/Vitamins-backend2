@@ -13,11 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestService_UserCannotAccessOthersReminders_Integration ensures that the
-// authorization scope of the vitamins use-case is by user_id: user A creates
-// a reminder, and user B is not allowed to read, modify or toggle it. We rely
-// on the repository's WHERE user_id = $1 clause; this test would catch a
-// regression if that clause was ever dropped.
 func TestService_UserCannotAccessOthersReminders_Integration(t *testing.T) {
 	pool := testutil.NewTestPool(t)
 	testutil.ResetTables(t, pool)

@@ -32,9 +32,6 @@ func NewSMTPMailer(host, port, user, pass, from string) *SMTPMailer {
 	}
 }
 
-// SendOneTimeCode delivers a generic one-time numeric code to the recipient.
-// The subject is configurable so the mailer can be reused for different flows
-// (password reset, password change, future two-factor, etc.).
 func (m *SMTPMailer) SendOneTimeCode(ctx context.Context, toEmail, subject, code string) error {
 	if m == nil || m.host == "" || m.port == "" || m.user == "" || m.pass == "" || m.from == "" {
 		return fmt.Errorf("smtp not configured")
@@ -65,10 +62,8 @@ func (m *SMTPMailer) SendOneTimeCode(ctx context.Context, toEmail, subject, code
 	var conn net.Conn
 	var err error
 
-	// Don't force IPv4; let the OS/container decide.
 	network := "tcp"
 
-	// Port 465 = implicit TLS, other ports = plain TCP + STARTTLS (if supported/required).
 	if m.port == "465" {
 		log.Debug("smtp dialing tls", "smtp.addr", addr)
 		td := &tls.Dialer{
@@ -85,7 +80,6 @@ func (m *SMTPMailer) SendOneTimeCode(ctx context.Context, toEmail, subject, code
 		return err
 	}
 
-	// Ensure the whole connection respects the context deadline.
 	if deadline, ok := ctx.Deadline(); ok {
 		_ = conn.SetDeadline(deadline)
 	}
@@ -97,14 +91,12 @@ func (m *SMTPMailer) SendOneTimeCode(ctx context.Context, toEmail, subject, code
 		_ = conn.Close()
 		return err
 	}
-	defer c.Close() //nolint:errcheck // best-effort cleanup
+	defer c.Close() //nolint:errcheck
 
-	// Explicit EHLO/HELO (helps some servers behave more predictably).
 	if err := c.Hello("vitamins"); err != nil {
 		return err
 	}
 
-	// For STARTTLS ports, require STARTTLS and enable it.
 	if m.port == "587" || m.port == "2525" {
 		if ok, _ := c.Extension("STARTTLS"); !ok {
 			return fmt.Errorf("smtp: server does not support STARTTLS")

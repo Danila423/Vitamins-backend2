@@ -14,13 +14,6 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// TestPasswordResetVerifyConfirm_WithMiniredis exercises VerifyPasswordResetCode
-// and ConfirmPasswordReset using a real Redis-compatible store (miniredis) but
-// without going anywhere near SMTP: the one-time code is injected directly into
-// the cache, exactly as it would be after RequestPasswordReset succeeds.
-//
-// This intentionally does not invoke the mailer because per project policy we
-// don't want tests to touch the e-mail send/receive path.
 func TestPasswordResetVerifyConfirm_WithMiniredis(t *testing.T) {
 	mr, err := miniredis.Run()
 	if err != nil {

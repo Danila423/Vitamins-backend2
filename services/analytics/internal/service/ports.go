@@ -6,7 +6,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// Repository is the data port for analytics use-cases.
 type Repository interface {
 	GetUserAnalyticsConsent(ctx context.Context, userID int64) (bool, error)
 	UpdateUserAnalyticsConsent(ctx context.Context, userID int64, consent bool) error
