@@ -45,7 +45,7 @@
 ## Технологический стек
 
 - Go `1.25`
-- Транспорт: HTTP (Gin), gRPC
+- Транспорт: HTTP (Gin), gRPC, Protocol Buffers
 - БД: PostgreSQL 16 (`pgx`, `sqlc`, SQL-миграции)
 - Кэш: Redis 7
 - Очередь сообщений: RabbitMQ `3.13`
@@ -57,6 +57,7 @@
   - логи: Elasticsearch + Logstash + Kibana
 - Документация API: Swagger UI (`swaggo`)
 - Инфраструктура запуска: Docker Compose, Makefile
+- CI: GitHub Actions (`.github/workflows/ci.yml`) — lint (golangci-lint), unit, integration, e2e, docker build
 - Тестирование: `go test`, `testify`, `httptest`, `httpexpect`, `mockery`, `testifylint`, `go-cmp`
 
 ---
