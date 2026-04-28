@@ -79,8 +79,8 @@ pkg/
   cache/          # redis store
 
 deploy/
-  docker-compose.yml        # полный стек (приложение + infra + observability)
-  docker-compose.app.yml    # только приложение (из готовых image)
+  docker-compose.yml        # полный стек 
+  docker-compose.app.yml    # только приложение
   docker-compose.data.yml   # только инфраструктура
 
 monitoring/       # конфиги Prometheus/Grafana/Alertmanager
