@@ -1,4 +1,4 @@
-# Vitamins Backend 2
+# Vitamins Backend
 
 Бэкенд-платформа для мобильного приложения VitaInfo.
 
