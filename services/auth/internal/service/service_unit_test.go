@@ -18,6 +18,7 @@ type fakeUserRepo struct {
 	getUserByIDFn        func(ctx context.Context, userID int64) (User, error)
 	updateUserPasswordFn func(ctx context.Context, userID int64, passwordHash string) error
 	updateUserProfileFn  func(ctx context.Context, userID int64, email, firstName, lastName string) (User, error)
+	deleteUserFn         func(ctx context.Context, userID int64) error
 }
 
 func (f *fakeUserRepo) CreateUser(ctx context.Context, email, passwordHash string) (User, error) {
@@ -53,6 +54,13 @@ func (f *fakeUserRepo) UpdateUserProfile(ctx context.Context, userID int64, emai
 		return User{}, errors.New("update profile not stubbed")
 	}
 	return f.updateUserProfileFn(ctx, userID, email, firstName, lastName)
+}
+
+func (f *fakeUserRepo) DeleteUser(ctx context.Context, userID int64) error {
+	if f.deleteUserFn == nil {
+		return errors.New("delete user not stubbed")
+	}
+	return f.deleteUserFn(ctx, userID)
 }
 
 type fakeRedis struct {
@@ -102,6 +110,14 @@ func (f *fakeRedis) Del(_ context.Context, keys ...string) (int64, error) {
 
 func testJWT() *JWTManager {
 	return NewJWTManager("unit-test-secret", 5*time.Minute, 30*time.Minute)
+}
+
+func existingUserRepo() *fakeUserRepo {
+	return &fakeUserRepo{
+		getUserByIDFn: func(_ context.Context, userID int64) (User, error) {
+			return User{ID: userID, Email: "user@test.local"}, nil
+		},
+	}
 }
 
 func TestService_Register(t *testing.T) {
@@ -187,7 +203,7 @@ func TestService_Refresh(t *testing.T) {
 		t.Parallel()
 
 		jwt := testJWT()
-		svc := NewServiceWithDeps(&fakeUserRepo{}, jwt, nil, nil, PasswordResetConfig{})
+		svc := NewServiceWithDeps(existingUserRepo(), jwt, nil, nil, PasswordResetConfig{})
 
 		initial, err := jwt.GenerateTokenPair(11)
 		require.NoError(t, err)
@@ -224,7 +240,7 @@ func TestService_Refresh(t *testing.T) {
 
 		jwt := testJWT()
 		redis := newFakeRedis()
-		svc := NewServiceWithDeps(&fakeUserRepo{}, jwt, nil, redis, PasswordResetConfig{})
+		svc := NewServiceWithDeps(existingUserRepo(), jwt, nil, redis, PasswordResetConfig{})
 
 		first, err := svc.Register(context.Background(), "reuse@test.local", "Passw0rd1")
 		_ = first
@@ -244,6 +260,45 @@ func TestService_Refresh(t *testing.T) {
 
 		_, err = svc.Refresh(context.Background(), pair.RefreshToken)
 		require.ErrorIs(t, err, ErrInvalidCredentials)
+	})
+}
+
+func TestService_DeleteAccount(t *testing.T) {
+	t.Parallel()
+
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
+
+		repo := &fakeUserRepo{
+			deleteUserFn: func(_ context.Context, userID int64) error {
+				require.Equal(t, int64(42), userID)
+				return nil
+			},
+		}
+		svc := NewServiceWithDeps(repo, testJWT(), nil, nil, PasswordResetConfig{})
+
+		require.NoError(t, svc.DeleteAccount(context.Background(), 42))
+	})
+
+	t.Run("zero user id returns not found", func(t *testing.T) {
+		t.Parallel()
+
+		svc := NewServiceWithDeps(&fakeUserRepo{}, testJWT(), nil, nil, PasswordResetConfig{})
+
+		require.ErrorIs(t, svc.DeleteAccount(context.Background(), 0), ErrUserNotFound)
+	})
+
+	t.Run("repository not found is preserved", func(t *testing.T) {
+		t.Parallel()
+
+		repo := &fakeUserRepo{
+			deleteUserFn: func(_ context.Context, _ int64) error {
+				return ErrUserNotFound
+			},
+		}
+		svc := NewServiceWithDeps(repo, testJWT(), nil, nil, PasswordResetConfig{})
+
+		require.ErrorIs(t, svc.DeleteAccount(context.Background(), 404), ErrUserNotFound)
 	})
 }
 

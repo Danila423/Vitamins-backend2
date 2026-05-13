@@ -24,6 +24,7 @@ const (
 	AuthService_Refresh_FullMethodName                  = "/auth.v1.AuthService/Refresh"
 	AuthService_GetProfile_FullMethodName               = "/auth.v1.AuthService/GetProfile"
 	AuthService_UpdateProfile_FullMethodName            = "/auth.v1.AuthService/UpdateProfile"
+	AuthService_DeleteAccount_FullMethodName            = "/auth.v1.AuthService/DeleteAccount"
 	AuthService_RequestPasswordReset_FullMethodName     = "/auth.v1.AuthService/RequestPasswordReset"
 	AuthService_VerifyPasswordResetCode_FullMethodName  = "/auth.v1.AuthService/VerifyPasswordResetCode"
 	AuthService_ConfirmPasswordReset_FullMethodName     = "/auth.v1.AuthService/ConfirmPasswordReset"
@@ -41,6 +42,7 @@ type AuthServiceClient interface {
 	Refresh(ctx context.Context, in *RefreshRequest, opts ...grpc.CallOption) (*TokenPairResponse, error)
 	GetProfile(ctx context.Context, in *GetProfileRequest, opts ...grpc.CallOption) (*UserProfileResponse, error)
 	UpdateProfile(ctx context.Context, in *UpdateProfileRequest, opts ...grpc.CallOption) (*UserProfileResponse, error)
+	DeleteAccount(ctx context.Context, in *DeleteAccountRequest, opts ...grpc.CallOption) (*Empty, error)
 	RequestPasswordReset(ctx context.Context, in *RequestPasswordResetRequest, opts ...grpc.CallOption) (*Empty, error)
 	VerifyPasswordResetCode(ctx context.Context, in *VerifyPasswordResetCodeRequest, opts ...grpc.CallOption) (*VerifyCodeResponse, error)
 	ConfirmPasswordReset(ctx context.Context, in *ConfirmPasswordResetRequest, opts ...grpc.CallOption) (*Empty, error)
@@ -101,6 +103,16 @@ func (c *authServiceClient) UpdateProfile(ctx context.Context, in *UpdateProfile
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UserProfileResponse)
 	err := c.cc.Invoke(ctx, AuthService_UpdateProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) DeleteAccount(ctx context.Context, in *DeleteAccountRequest, opts ...grpc.CallOption) (*Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, AuthService_DeleteAccount_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -176,6 +188,7 @@ type AuthServiceServer interface {
 	Refresh(context.Context, *RefreshRequest) (*TokenPairResponse, error)
 	GetProfile(context.Context, *GetProfileRequest) (*UserProfileResponse, error)
 	UpdateProfile(context.Context, *UpdateProfileRequest) (*UserProfileResponse, error)
+	DeleteAccount(context.Context, *DeleteAccountRequest) (*Empty, error)
 	RequestPasswordReset(context.Context, *RequestPasswordResetRequest) (*Empty, error)
 	VerifyPasswordResetCode(context.Context, *VerifyPasswordResetCodeRequest) (*VerifyCodeResponse, error)
 	ConfirmPasswordReset(context.Context, *ConfirmPasswordResetRequest) (*Empty, error)
@@ -206,6 +219,9 @@ func (UnimplementedAuthServiceServer) GetProfile(context.Context, *GetProfileReq
 }
 func (UnimplementedAuthServiceServer) UpdateProfile(context.Context, *UpdateProfileRequest) (*UserProfileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateProfile not implemented")
+}
+func (UnimplementedAuthServiceServer) DeleteAccount(context.Context, *DeleteAccountRequest) (*Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteAccount not implemented")
 }
 func (UnimplementedAuthServiceServer) RequestPasswordReset(context.Context, *RequestPasswordResetRequest) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method RequestPasswordReset not implemented")
@@ -332,6 +348,24 @@ func _AuthService_UpdateProfile_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServiceServer).UpdateProfile(ctx, req.(*UpdateProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_DeleteAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).DeleteAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_DeleteAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).DeleteAccount(ctx, req.(*DeleteAccountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -470,6 +504,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateProfile",
 			Handler:    _AuthService_UpdateProfile_Handler,
+		},
+		{
+			MethodName: "DeleteAccount",
+			Handler:    _AuthService_DeleteAccount_Handler,
 		},
 		{
 			MethodName: "RequestPasswordReset",

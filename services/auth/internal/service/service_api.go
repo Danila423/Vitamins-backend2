@@ -16,6 +16,7 @@ type ServiceAPI interface {
 
 	UpdateProfile(ctx context.Context, userID int64, in ProfileUpdate) (UserProfile, error)
 	GetProfile(ctx context.Context, userID int64) (UserProfile, error)
+	DeleteAccount(ctx context.Context, userID int64) error
 
 	RequestPasswordChange(ctx context.Context, userID int64) error
 	VerifyPasswordChangeCode(ctx context.Context, userID int64, code string) (string, error)

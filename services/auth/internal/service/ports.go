@@ -29,6 +29,7 @@ type UserRepository interface {
 	GetUserByID(ctx context.Context, userID int64) (User, error)
 	UpdateUserPassword(ctx context.Context, userID int64, passwordHash string) error
 	UpdateUserProfile(ctx context.Context, userID int64, email, firstName, lastName string) (User, error)
+	DeleteUser(ctx context.Context, userID int64) error
 }
 
 type TokenProvider interface {

@@ -369,6 +369,50 @@ func (x *UpdateProfileRequest) GetEmail() string {
 	return ""
 }
 
+type DeleteAccountRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAccountRequest) Reset() {
+	*x = DeleteAccountRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAccountRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAccountRequest) ProtoMessage() {}
+
+func (x *DeleteAccountRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAccountRequest.ProtoReflect.Descriptor instead.
+func (*DeleteAccountRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *DeleteAccountRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
 type UserProfileResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -381,7 +425,7 @@ type UserProfileResponse struct {
 
 func (x *UserProfileResponse) Reset() {
 	*x = UserProfileResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[7]
+	mi := &file_auth_v1_auth_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -393,7 +437,7 @@ func (x *UserProfileResponse) String() string {
 func (*UserProfileResponse) ProtoMessage() {}
 
 func (x *UserProfileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[7]
+	mi := &file_auth_v1_auth_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -406,7 +450,7 @@ func (x *UserProfileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserProfileResponse.ProtoReflect.Descriptor instead.
 func (*UserProfileResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{7}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UserProfileResponse) GetId() int64 {
@@ -446,7 +490,7 @@ type RequestPasswordResetRequest struct {
 
 func (x *RequestPasswordResetRequest) Reset() {
 	*x = RequestPasswordResetRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[8]
+	mi := &file_auth_v1_auth_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -458,7 +502,7 @@ func (x *RequestPasswordResetRequest) String() string {
 func (*RequestPasswordResetRequest) ProtoMessage() {}
 
 func (x *RequestPasswordResetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[8]
+	mi := &file_auth_v1_auth_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -471,7 +515,7 @@ func (x *RequestPasswordResetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestPasswordResetRequest.ProtoReflect.Descriptor instead.
 func (*RequestPasswordResetRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{8}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *RequestPasswordResetRequest) GetEmail() string {
@@ -491,7 +535,7 @@ type VerifyPasswordResetCodeRequest struct {
 
 func (x *VerifyPasswordResetCodeRequest) Reset() {
 	*x = VerifyPasswordResetCodeRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[9]
+	mi := &file_auth_v1_auth_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -503,7 +547,7 @@ func (x *VerifyPasswordResetCodeRequest) String() string {
 func (*VerifyPasswordResetCodeRequest) ProtoMessage() {}
 
 func (x *VerifyPasswordResetCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[9]
+	mi := &file_auth_v1_auth_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -516,7 +560,7 @@ func (x *VerifyPasswordResetCodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyPasswordResetCodeRequest.ProtoReflect.Descriptor instead.
 func (*VerifyPasswordResetCodeRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{9}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *VerifyPasswordResetCodeRequest) GetEmail() string {
@@ -542,7 +586,7 @@ type VerifyCodeResponse struct {
 
 func (x *VerifyCodeResponse) Reset() {
 	*x = VerifyCodeResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[10]
+	mi := &file_auth_v1_auth_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -554,7 +598,7 @@ func (x *VerifyCodeResponse) String() string {
 func (*VerifyCodeResponse) ProtoMessage() {}
 
 func (x *VerifyCodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[10]
+	mi := &file_auth_v1_auth_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -567,7 +611,7 @@ func (x *VerifyCodeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyCodeResponse.ProtoReflect.Descriptor instead.
 func (*VerifyCodeResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{10}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *VerifyCodeResponse) GetToken() string {
@@ -588,7 +632,7 @@ type ConfirmPasswordResetRequest struct {
 
 func (x *ConfirmPasswordResetRequest) Reset() {
 	*x = ConfirmPasswordResetRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[11]
+	mi := &file_auth_v1_auth_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -600,7 +644,7 @@ func (x *ConfirmPasswordResetRequest) String() string {
 func (*ConfirmPasswordResetRequest) ProtoMessage() {}
 
 func (x *ConfirmPasswordResetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[11]
+	mi := &file_auth_v1_auth_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -613,7 +657,7 @@ func (x *ConfirmPasswordResetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmPasswordResetRequest.ProtoReflect.Descriptor instead.
 func (*ConfirmPasswordResetRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{11}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ConfirmPasswordResetRequest) GetResetToken() string {
@@ -646,7 +690,7 @@ type RequestPasswordChangeRequest struct {
 
 func (x *RequestPasswordChangeRequest) Reset() {
 	*x = RequestPasswordChangeRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[12]
+	mi := &file_auth_v1_auth_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -658,7 +702,7 @@ func (x *RequestPasswordChangeRequest) String() string {
 func (*RequestPasswordChangeRequest) ProtoMessage() {}
 
 func (x *RequestPasswordChangeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[12]
+	mi := &file_auth_v1_auth_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -671,7 +715,7 @@ func (x *RequestPasswordChangeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestPasswordChangeRequest.ProtoReflect.Descriptor instead.
 func (*RequestPasswordChangeRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{12}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *RequestPasswordChangeRequest) GetUserId() int64 {
@@ -691,7 +735,7 @@ type VerifyPasswordChangeCodeRequest struct {
 
 func (x *VerifyPasswordChangeCodeRequest) Reset() {
 	*x = VerifyPasswordChangeCodeRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[13]
+	mi := &file_auth_v1_auth_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -703,7 +747,7 @@ func (x *VerifyPasswordChangeCodeRequest) String() string {
 func (*VerifyPasswordChangeCodeRequest) ProtoMessage() {}
 
 func (x *VerifyPasswordChangeCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[13]
+	mi := &file_auth_v1_auth_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -716,7 +760,7 @@ func (x *VerifyPasswordChangeCodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyPasswordChangeCodeRequest.ProtoReflect.Descriptor instead.
 func (*VerifyPasswordChangeCodeRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{13}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *VerifyPasswordChangeCodeRequest) GetUserId() int64 {
@@ -744,7 +788,7 @@ type ConfirmPasswordChangeRequest struct {
 
 func (x *ConfirmPasswordChangeRequest) Reset() {
 	*x = ConfirmPasswordChangeRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[14]
+	mi := &file_auth_v1_auth_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -756,7 +800,7 @@ func (x *ConfirmPasswordChangeRequest) String() string {
 func (*ConfirmPasswordChangeRequest) ProtoMessage() {}
 
 func (x *ConfirmPasswordChangeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[14]
+	mi := &file_auth_v1_auth_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -769,7 +813,7 @@ func (x *ConfirmPasswordChangeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmPasswordChangeRequest.ProtoReflect.Descriptor instead.
 func (*ConfirmPasswordChangeRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{14}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ConfirmPasswordChangeRequest) GetChangeToken() string {
@@ -821,7 +865,9 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\v_first_nameB\f\n" +
 	"\n" +
 	"_last_nameB\b\n" +
-	"\x06_email\"w\n" +
+	"\x06_email\"/\n" +
+	"\x14DeleteAccountRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\"w\n" +
 	"\x13UserProfileResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1d\n" +
@@ -848,14 +894,15 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x1cConfirmPasswordChangeRequest\x12!\n" +
 	"\fchange_token\x18\x01 \x01(\tR\vchangeToken\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12)\n" +
-	"\x10password_confirm\x18\x03 \x01(\tR\x0fpasswordConfirm2\xe1\x06\n" +
+	"\x10password_confirm\x18\x03 \x01(\tR\x0fpasswordConfirm2\xa1\a\n" +
 	"\vAuthService\x12@\n" +
 	"\bRegister\x12\x18.auth.v1.RegisterRequest\x1a\x1a.auth.v1.TokenPairResponse\x12:\n" +
 	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x1a.auth.v1.TokenPairResponse\x12>\n" +
 	"\aRefresh\x12\x17.auth.v1.RefreshRequest\x1a\x1a.auth.v1.TokenPairResponse\x12F\n" +
 	"\n" +
 	"GetProfile\x12\x1a.auth.v1.GetProfileRequest\x1a\x1c.auth.v1.UserProfileResponse\x12L\n" +
-	"\rUpdateProfile\x12\x1d.auth.v1.UpdateProfileRequest\x1a\x1c.auth.v1.UserProfileResponse\x12L\n" +
+	"\rUpdateProfile\x12\x1d.auth.v1.UpdateProfileRequest\x1a\x1c.auth.v1.UserProfileResponse\x12>\n" +
+	"\rDeleteAccount\x12\x1d.auth.v1.DeleteAccountRequest\x1a\x0e.auth.v1.Empty\x12L\n" +
 	"\x14RequestPasswordReset\x12$.auth.v1.RequestPasswordResetRequest\x1a\x0e.auth.v1.Empty\x12_\n" +
 	"\x17VerifyPasswordResetCode\x12'.auth.v1.VerifyPasswordResetCodeRequest\x1a\x1b.auth.v1.VerifyCodeResponse\x12L\n" +
 	"\x14ConfirmPasswordReset\x12$.auth.v1.ConfirmPasswordResetRequest\x1a\x0e.auth.v1.Empty\x12N\n" +
@@ -875,7 +922,7 @@ func file_auth_v1_auth_proto_rawDescGZIP() []byte {
 	return file_auth_v1_auth_proto_rawDescData
 }
 
-var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_auth_v1_auth_proto_goTypes = []any{
 	(*Empty)(nil),                           // 0: auth.v1.Empty
 	(*RegisterRequest)(nil),                 // 1: auth.v1.RegisterRequest
@@ -884,14 +931,15 @@ var file_auth_v1_auth_proto_goTypes = []any{
 	(*TokenPairResponse)(nil),               // 4: auth.v1.TokenPairResponse
 	(*GetProfileRequest)(nil),               // 5: auth.v1.GetProfileRequest
 	(*UpdateProfileRequest)(nil),            // 6: auth.v1.UpdateProfileRequest
-	(*UserProfileResponse)(nil),             // 7: auth.v1.UserProfileResponse
-	(*RequestPasswordResetRequest)(nil),     // 8: auth.v1.RequestPasswordResetRequest
-	(*VerifyPasswordResetCodeRequest)(nil),  // 9: auth.v1.VerifyPasswordResetCodeRequest
-	(*VerifyCodeResponse)(nil),              // 10: auth.v1.VerifyCodeResponse
-	(*ConfirmPasswordResetRequest)(nil),     // 11: auth.v1.ConfirmPasswordResetRequest
-	(*RequestPasswordChangeRequest)(nil),    // 12: auth.v1.RequestPasswordChangeRequest
-	(*VerifyPasswordChangeCodeRequest)(nil), // 13: auth.v1.VerifyPasswordChangeCodeRequest
-	(*ConfirmPasswordChangeRequest)(nil),    // 14: auth.v1.ConfirmPasswordChangeRequest
+	(*DeleteAccountRequest)(nil),            // 7: auth.v1.DeleteAccountRequest
+	(*UserProfileResponse)(nil),             // 8: auth.v1.UserProfileResponse
+	(*RequestPasswordResetRequest)(nil),     // 9: auth.v1.RequestPasswordResetRequest
+	(*VerifyPasswordResetCodeRequest)(nil),  // 10: auth.v1.VerifyPasswordResetCodeRequest
+	(*VerifyCodeResponse)(nil),              // 11: auth.v1.VerifyCodeResponse
+	(*ConfirmPasswordResetRequest)(nil),     // 12: auth.v1.ConfirmPasswordResetRequest
+	(*RequestPasswordChangeRequest)(nil),    // 13: auth.v1.RequestPasswordChangeRequest
+	(*VerifyPasswordChangeCodeRequest)(nil), // 14: auth.v1.VerifyPasswordChangeCodeRequest
+	(*ConfirmPasswordChangeRequest)(nil),    // 15: auth.v1.ConfirmPasswordChangeRequest
 }
 var file_auth_v1_auth_proto_depIdxs = []int32{
 	1,  // 0: auth.v1.AuthService.Register:input_type -> auth.v1.RegisterRequest
@@ -899,25 +947,27 @@ var file_auth_v1_auth_proto_depIdxs = []int32{
 	3,  // 2: auth.v1.AuthService.Refresh:input_type -> auth.v1.RefreshRequest
 	5,  // 3: auth.v1.AuthService.GetProfile:input_type -> auth.v1.GetProfileRequest
 	6,  // 4: auth.v1.AuthService.UpdateProfile:input_type -> auth.v1.UpdateProfileRequest
-	8,  // 5: auth.v1.AuthService.RequestPasswordReset:input_type -> auth.v1.RequestPasswordResetRequest
-	9,  // 6: auth.v1.AuthService.VerifyPasswordResetCode:input_type -> auth.v1.VerifyPasswordResetCodeRequest
-	11, // 7: auth.v1.AuthService.ConfirmPasswordReset:input_type -> auth.v1.ConfirmPasswordResetRequest
-	12, // 8: auth.v1.AuthService.RequestPasswordChange:input_type -> auth.v1.RequestPasswordChangeRequest
-	13, // 9: auth.v1.AuthService.VerifyPasswordChangeCode:input_type -> auth.v1.VerifyPasswordChangeCodeRequest
-	14, // 10: auth.v1.AuthService.ConfirmPasswordChange:input_type -> auth.v1.ConfirmPasswordChangeRequest
-	4,  // 11: auth.v1.AuthService.Register:output_type -> auth.v1.TokenPairResponse
-	4,  // 12: auth.v1.AuthService.Login:output_type -> auth.v1.TokenPairResponse
-	4,  // 13: auth.v1.AuthService.Refresh:output_type -> auth.v1.TokenPairResponse
-	7,  // 14: auth.v1.AuthService.GetProfile:output_type -> auth.v1.UserProfileResponse
-	7,  // 15: auth.v1.AuthService.UpdateProfile:output_type -> auth.v1.UserProfileResponse
-	0,  // 16: auth.v1.AuthService.RequestPasswordReset:output_type -> auth.v1.Empty
-	10, // 17: auth.v1.AuthService.VerifyPasswordResetCode:output_type -> auth.v1.VerifyCodeResponse
-	0,  // 18: auth.v1.AuthService.ConfirmPasswordReset:output_type -> auth.v1.Empty
-	0,  // 19: auth.v1.AuthService.RequestPasswordChange:output_type -> auth.v1.Empty
-	10, // 20: auth.v1.AuthService.VerifyPasswordChangeCode:output_type -> auth.v1.VerifyCodeResponse
-	0,  // 21: auth.v1.AuthService.ConfirmPasswordChange:output_type -> auth.v1.Empty
-	11, // [11:22] is the sub-list for method output_type
-	0,  // [0:11] is the sub-list for method input_type
+	7,  // 5: auth.v1.AuthService.DeleteAccount:input_type -> auth.v1.DeleteAccountRequest
+	9,  // 6: auth.v1.AuthService.RequestPasswordReset:input_type -> auth.v1.RequestPasswordResetRequest
+	10, // 7: auth.v1.AuthService.VerifyPasswordResetCode:input_type -> auth.v1.VerifyPasswordResetCodeRequest
+	12, // 8: auth.v1.AuthService.ConfirmPasswordReset:input_type -> auth.v1.ConfirmPasswordResetRequest
+	13, // 9: auth.v1.AuthService.RequestPasswordChange:input_type -> auth.v1.RequestPasswordChangeRequest
+	14, // 10: auth.v1.AuthService.VerifyPasswordChangeCode:input_type -> auth.v1.VerifyPasswordChangeCodeRequest
+	15, // 11: auth.v1.AuthService.ConfirmPasswordChange:input_type -> auth.v1.ConfirmPasswordChangeRequest
+	4,  // 12: auth.v1.AuthService.Register:output_type -> auth.v1.TokenPairResponse
+	4,  // 13: auth.v1.AuthService.Login:output_type -> auth.v1.TokenPairResponse
+	4,  // 14: auth.v1.AuthService.Refresh:output_type -> auth.v1.TokenPairResponse
+	8,  // 15: auth.v1.AuthService.GetProfile:output_type -> auth.v1.UserProfileResponse
+	8,  // 16: auth.v1.AuthService.UpdateProfile:output_type -> auth.v1.UserProfileResponse
+	0,  // 17: auth.v1.AuthService.DeleteAccount:output_type -> auth.v1.Empty
+	0,  // 18: auth.v1.AuthService.RequestPasswordReset:output_type -> auth.v1.Empty
+	11, // 19: auth.v1.AuthService.VerifyPasswordResetCode:output_type -> auth.v1.VerifyCodeResponse
+	0,  // 20: auth.v1.AuthService.ConfirmPasswordReset:output_type -> auth.v1.Empty
+	0,  // 21: auth.v1.AuthService.RequestPasswordChange:output_type -> auth.v1.Empty
+	11, // 22: auth.v1.AuthService.VerifyPasswordChangeCode:output_type -> auth.v1.VerifyCodeResponse
+	0,  // 23: auth.v1.AuthService.ConfirmPasswordChange:output_type -> auth.v1.Empty
+	12, // [12:24] is the sub-list for method output_type
+	0,  // [0:12] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name
@@ -935,7 +985,7 @@ func file_auth_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_v1_auth_proto_rawDesc), len(file_auth_v1_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   15,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

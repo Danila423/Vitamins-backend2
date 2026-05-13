@@ -1,0 +1,169 @@
+Project vitamins_backend {
+  database_type: "PostgreSQL"
+  Note: "Schema source: pkg/db/models.sql. Runtime migrations are applied by pkg/db/migrate.go."
+}
+
+Table users {
+  id bigint [pk, increment]
+  email text [not null]
+  password_hash text [not null]
+  first_name text [not null, default: ""]
+  last_name text [not null, default: ""]
+  analytics_consent boolean [not null, default: false]
+  analytics_consent_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    email [unique, name: "users_email_key"]
+  }
+
+  Note: "Application users and analytics consent state."
+}
+
+Table vitamin_catalog {
+  id bigint [pk, increment]
+  code text
+  display_name text [not null]
+  default_unit text
+  interaction_text text
+  compatibility_text text
+  contraindications_text text
+  default_condition smallint
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    code [unique, name: "vitamin_catalog_code_key"]
+  }
+
+  Note: "Seeded reference catalog. default_condition: 0 any, 1 before_meal, 2 after_meal, 3 during_meal."
+}
+
+Table user_vitamins {
+  id bigint [pk, increment]
+  user_id bigint [not null, note: "FK -> users.id ON DELETE CASCADE"]
+  catalog_id bigint [note: "FK -> vitamin_catalog.id"]
+  name text [not null, default: ""]
+  dosage_form smallint [not null, default: 0]
+  dose_value text [not null, default: ""]
+  dose_unit text [not null, default: ""]
+  condition smallint [not null, default: 0]
+  note text [not null, default: ""]
+  is_active boolean [not null, default: true]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (user_id, is_active) [name: "idx_user_vitamins_user_active"]
+    (user_id, catalog_id) [name: "idx_user_vitamins_user_catalog"]
+  }
+
+  Note: "User reminder root. CHECK (name <> ''). user_id uses ON DELETE CASCADE; catalog_id is nullable."
+}
+
+Table vitamin_courses {
+  id bigint [pk, increment]
+  user_vitamin_id bigint [not null, note: "FK -> user_vitamins.id ON DELETE CASCADE"]
+  start_date date [not null]
+  end_date date
+  timezone text [not null]
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    user_vitamin_id [unique, name: "vitamin_courses_user_vitamin_id_key"]
+  }
+
+  Note: "One course per user_vitamin. FK uses ON DELETE CASCADE."
+}
+
+Table intake_schedules {
+  id bigint [pk, increment]
+  course_id bigint [not null, note: "FK -> vitamin_courses.id ON DELETE CASCADE"]
+  type smallint [not null]
+  days_mask smallint [not null, default: 127]
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    course_id [unique, name: "intake_schedules_course_id_key"]
+    course_id [name: "idx_intake_schedules_course"]
+  }
+
+  Note: "One schedule per course. type: 0 everyday, 1 custom. days_mask bits: mon=1, tue=2, wed=4, thu=8, fri=16, sat=32, sun=64; 127 means all days."
+}
+
+Table intake_times {
+  id bigint [pk, increment]
+  schedule_id bigint [not null, note: "FK -> intake_schedules.id ON DELETE CASCADE"]
+  time_of_day time [not null]
+  sort_order int [not null, default: 0]
+
+  indexes {
+    (schedule_id, time_of_day) [unique, name: "idx_intake_times_unique"]
+  }
+
+  Note: "Many intake times per schedule. FK uses ON DELETE CASCADE."
+}
+
+Table notification_preferences {
+  id bigint [pk, increment]
+  user_vitamin_id bigint [not null, note: "FK -> user_vitamins.id ON DELETE CASCADE"]
+  include_dose boolean [not null, default: true]
+  include_frequency boolean [not null, default: true]
+  include_interaction boolean [not null, default: true]
+  include_compatibility boolean [not null, default: true]
+  include_condition boolean [not null, default: true]
+  include_contraindications boolean [not null, default: true]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    user_vitamin_id [unique, name: "notification_preferences_user_vitamin_id_key"]
+  }
+
+  Note: "One preference row per user_vitamin. FK uses ON DELETE CASCADE."
+}
+
+Table notification_text_overrides {
+  id bigint [pk, increment]
+  user_vitamin_id bigint [not null, note: "FK -> user_vitamins.id ON DELETE CASCADE"]
+  interaction_text_override text
+  compatibility_text_override text
+  contraindications_text_override text
+
+  indexes {
+    user_vitamin_id [unique, name: "notification_text_overrides_user_vitamin_id_key"]
+  }
+
+  Note: "Optional custom texts per user_vitamin. FK uses ON DELETE CASCADE."
+}
+
+Table analytics_events {
+  event_id uuid [pk]
+  occurred_at timestamptz [not null]
+  received_at timestamptz [not null, default: `now()`]
+  user_id bigint [note: "FK -> users.id ON DELETE SET NULL"]
+  anonymous_id uuid
+  session_id uuid [not null]
+  event_name text [not null]
+  properties jsonb [not null, default: "{}"]
+  request_id text
+  app_version text
+  platform text
+
+  indexes {
+    (event_name, occurred_at) [name: "idx_analytics_events_name_time"]
+    (user_id, occurred_at) [name: "idx_analytics_events_user_time"]
+    (anonymous_id, occurred_at) [name: "idx_analytics_events_anon_time"]
+  }
+
+  Note: "Event store. CHECK (user_id IS NOT NULL OR anonymous_id IS NOT NULL). user_id uses ON DELETE SET NULL."
+}
+
+Ref: users.id < user_vitamins.user_id [delete: cascade]
+Ref: vitamin_catalog.id < user_vitamins.catalog_id
+Ref: user_vitamins.id - vitamin_courses.user_vitamin_id [delete: cascade]
+Ref: vitamin_courses.id - intake_schedules.course_id [delete: cascade]
+Ref: intake_schedules.id < intake_times.schedule_id [delete: cascade]
+Ref: user_vitamins.id - notification_preferences.user_vitamin_id [delete: cascade]
+Ref: user_vitamins.id - notification_text_overrides.user_vitamin_id [delete: cascade]
+Ref: users.id < analytics_events.user_id [delete: set null]

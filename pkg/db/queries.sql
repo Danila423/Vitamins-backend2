@@ -26,6 +26,10 @@ SET email = $1,
 WHERE id = $4
 RETURNING id, email, password_hash, first_name, last_name, created_at;
 
+-- name: DeleteUserByID :execrows
+DELETE FROM users
+WHERE id = $1;
+
 -- name: ListVitaminCatalog :many
 SELECT id, code, display_name, default_unit, interaction_text, compatibility_text,
        contraindications_text, default_condition, created_at, updated_at

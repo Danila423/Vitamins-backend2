@@ -85,6 +85,10 @@ func (s *AuthService) Refresh(ctx context.Context, token string) (*TokenPair, er
 		}
 	}
 
+	if _, err := s.users.GetUserByID(ctx, c.UserID); err != nil {
+		return nil, ErrInvalidCredentials
+	}
+
 	return s.issueTokens(ctx, c.UserID)
 }
 

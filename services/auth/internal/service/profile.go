@@ -83,6 +83,19 @@ func (s *ProfileService) UpdateProfile(ctx context.Context, userID int64, in Pro
 	return toUserProfile(updated), nil
 }
 
+func (s *ProfileService) DeleteAccount(ctx context.Context, userID int64) error {
+	if userID == 0 {
+		return ErrUserNotFound
+	}
+	if err := s.users.DeleteUser(ctx, userID); err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			return ErrUserNotFound
+		}
+		return err
+	}
+	return nil
+}
+
 func toUserProfile(u User) UserProfile {
 	return UserProfile{
 		ID:        u.ID,

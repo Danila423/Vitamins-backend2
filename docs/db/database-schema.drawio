@@ -1,0 +1,76 @@
+<mxfile host="app.diagrams.net" modified="2026-05-10T00:00:00.000Z" agent="Codex" version="24.7.17" type="device">
+  <diagram id="vitamins-backend-db" name="Vitamins Backend DB">
+    <mxGraphModel dx="2100" dy="1400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1300" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="title" value="Vitamins Backend PostgreSQL ER Schema&#xa;Source: pkg/db/models.sql" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="650" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend" value="Legend&#xa;PK = primary key&#xa;FK = foreign key&#xa;UQ = unique constraint/index&#xa;CASCADE = child rows deleted with parent&#xa;SET NULL = FK cleared when parent is deleted" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;align=left;verticalAlign=top;spacing=10" vertex="1" parent="1">
+          <mxGeometry x="1210" y="40" width="360" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="users" value="users&#xa;PK id BIGSERIAL&#xa;UQ email TEXT NOT NULL&#xa;password_hash TEXT NOT NULL&#xa;first_name TEXT NOT NULL DEFAULT ''&#xa;last_name TEXT NOT NULL DEFAULT ''&#xa;analytics_consent BOOLEAN DEFAULT false&#xa;analytics_consent_at TIMESTAMPTZ NULL&#xa;created_at TIMESTAMPTZ DEFAULT now()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;verticalAlign=top;spacing=8" vertex="1" parent="1">
+          <mxGeometry x="70" y="190" width="360" height="210" as="geometry"/>
+        </mxCell>
+        <mxCell id="vitamin_catalog" value="vitamin_catalog&#xa;PK id BIGSERIAL&#xa;UQ code TEXT NULL&#xa;display_name TEXT NOT NULL&#xa;default_unit TEXT NULL&#xa;interaction_text TEXT NULL&#xa;compatibility_text TEXT NULL&#xa;contraindications_text TEXT NULL&#xa;default_condition SMALLINT NULL&#xa;created_at TIMESTAMPTZ DEFAULT now()&#xa;updated_at TIMESTAMPTZ DEFAULT now()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;verticalAlign=top;spacing=8" vertex="1" parent="1">
+          <mxGeometry x="530" y="140" width="390" height="245" as="geometry"/>
+        </mxCell>
+        <mxCell id="user_vitamins" value="user_vitamins&#xa;PK id BIGSERIAL&#xa;FK user_id BIGINT NOT NULL -&gt; users.id CASCADE&#xa;FK catalog_id BIGINT NULL -&gt; vitamin_catalog.id&#xa;name TEXT NOT NULL DEFAULT '' CHECK name &lt;&gt; ''&#xa;dosage_form SMALLINT DEFAULT 0&#xa;dose_value TEXT NOT NULL DEFAULT ''&#xa;dose_unit TEXT NOT NULL DEFAULT ''&#xa;condition SMALLINT DEFAULT 0&#xa;note TEXT NOT NULL DEFAULT ''&#xa;is_active BOOLEAN DEFAULT true&#xa;created_at TIMESTAMPTZ DEFAULT now()&#xa;updated_at TIMESTAMPTZ DEFAULT now()&#xa;IDX (user_id, is_active), (user_id, catalog_id)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;verticalAlign=top;spacing=8" vertex="1" parent="1">
+          <mxGeometry x="520" y="450" width="430" height="315" as="geometry"/>
+        </mxCell>
+        <mxCell id="vitamin_courses" value="vitamin_courses&#xa;PK id BIGSERIAL&#xa;FK UQ user_vitamin_id BIGINT NOT NULL -&gt; user_vitamins.id CASCADE&#xa;start_date DATE NOT NULL&#xa;end_date DATE NULL&#xa;timezone TEXT NOT NULL&#xa;created_at TIMESTAMPTZ DEFAULT now()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;verticalAlign=top;spacing=8" vertex="1" parent="1">
+          <mxGeometry x="560" y="850" width="390" height="155" as="geometry"/>
+        </mxCell>
+        <mxCell id="intake_schedules" value="intake_schedules&#xa;PK id BIGSERIAL&#xa;FK UQ course_id BIGINT NOT NULL -&gt; vitamin_courses.id CASCADE&#xa;type SMALLINT NOT NULL&#xa;days_mask SMALLINT NOT NULL DEFAULT 127&#xa;created_at TIMESTAMPTZ DEFAULT now()&#xa;IDX course_id" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;verticalAlign=top;spacing=8" vertex="1" parent="1">
+          <mxGeometry x="560" y="1080" width="390" height="155" as="geometry"/>
+        </mxCell>
+        <mxCell id="intake_times" value="intake_times&#xa;PK id BIGSERIAL&#xa;FK schedule_id BIGINT NOT NULL -&gt; intake_schedules.id CASCADE&#xa;time_of_day TIME NOT NULL&#xa;sort_order INT NOT NULL DEFAULT 0&#xa;UQ (schedule_id, time_of_day)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;verticalAlign=top;spacing=8" vertex="1" parent="1">
+          <mxGeometry x="1030" y="1080" width="360" height="140" as="geometry"/>
+        </mxCell>
+        <mxCell id="notification_preferences" value="notification_preferences&#xa;PK id BIGSERIAL&#xa;FK UQ user_vitamin_id BIGINT NOT NULL -&gt; user_vitamins.id CASCADE&#xa;include_dose BOOLEAN DEFAULT true&#xa;include_frequency BOOLEAN DEFAULT true&#xa;include_interaction BOOLEAN DEFAULT true&#xa;include_compatibility BOOLEAN DEFAULT true&#xa;include_condition BOOLEAN DEFAULT true&#xa;include_contraindications BOOLEAN DEFAULT true&#xa;created_at TIMESTAMPTZ DEFAULT now()&#xa;updated_at TIMESTAMPTZ DEFAULT now()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;verticalAlign=top;spacing=8" vertex="1" parent="1">
+          <mxGeometry x="1030" y="445" width="430" height="250" as="geometry"/>
+        </mxCell>
+        <mxCell id="notification_text_overrides" value="notification_text_overrides&#xa;PK id BIGSERIAL&#xa;FK UQ user_vitamin_id BIGINT NOT NULL -&gt; user_vitamins.id CASCADE&#xa;interaction_text_override TEXT NULL&#xa;compatibility_text_override TEXT NULL&#xa;contraindications_text_override TEXT NULL" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;verticalAlign=top;spacing=8" vertex="1" parent="1">
+          <mxGeometry x="1030" y="745" width="430" height="145" as="geometry"/>
+        </mxCell>
+        <mxCell id="analytics_events" value="analytics_events&#xa;PK event_id UUID&#xa;occurred_at TIMESTAMPTZ NOT NULL&#xa;received_at TIMESTAMPTZ DEFAULT now()&#xa;FK user_id BIGINT NULL -&gt; users.id SET NULL&#xa;anonymous_id UUID NULL&#xa;session_id UUID NOT NULL&#xa;event_name TEXT NOT NULL&#xa;properties JSONB NOT NULL DEFAULT '{}'&#xa;request_id TEXT NULL&#xa;app_version TEXT NULL&#xa;platform TEXT NULL&#xa;CHECK user_id IS NOT NULL OR anonymous_id IS NOT NULL&#xa;IDX (event_name, occurred_at), (user_id, occurred_at), (anonymous_id, occurred_at)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=left;verticalAlign=top;spacing=8" vertex="1" parent="1">
+          <mxGeometry x="60" y="510" width="390" height="290" as="geometry"/>
+        </mxCell>
+        <mxCell id="enum_conditions" value="condition / default_condition&#xa;0 = any&#xa;1 = before_meal&#xa;2 = after_meal&#xa;3 = during_meal" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;align=left;verticalAlign=top;spacing=8" vertex="1" parent="1">
+          <mxGeometry x="70" y="880" width="330" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="enum_schedule" value="schedule encodings&#xa;type: 0 everyday, 1 custom&#xa;days_mask bits: mon=1, tue=2, wed=4, thu=8, fri=16, sat=32, sun=64&#xa;127 = all days" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;align=left;verticalAlign=top;spacing=8" vertex="1" parent="1">
+          <mxGeometry x="70" y="1040" width="390" height="130" as="geometry"/>
+        </mxCell>
+        <mxCell id="enum_forms" value="dosage_form&#xa;0 tablet, 1 capsule, 2 powder, 3 liquid, 4 injection&#xa;5 other, 6 drops, 7 chewable_tablet, 8 ampoule, 9 spray" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;align=left;verticalAlign=top;spacing=8" vertex="1" parent="1">
+          <mxGeometry x="1040" y="190" width="450" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel_users_user_vitamins" value="1 : N&#xa;ON DELETE CASCADE" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=11;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="users" target="user_vitamins">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel_catalog_user_vitamins" value="0..1 : N" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=11;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="vitamin_catalog" target="user_vitamins">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel_user_vitamins_courses" value="1 : 0..1&#xa;UQ, CASCADE" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=11;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="user_vitamins" target="vitamin_courses">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel_courses_schedules" value="1 : 0..1&#xa;UQ, CASCADE" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=11;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="vitamin_courses" target="intake_schedules">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel_schedules_times" value="1 : N&#xa;CASCADE" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=11;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="intake_schedules" target="intake_times">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel_user_vitamins_prefs" value="1 : 0..1&#xa;UQ, CASCADE" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=11;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="user_vitamins" target="notification_preferences">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel_user_vitamins_overrides" value="1 : 0..1&#xa;UQ, CASCADE" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=11;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="user_vitamins" target="notification_text_overrides">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel_users_events" value="1 : N&#xa;ON DELETE SET NULL" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=11;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="users" target="analytics_events">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

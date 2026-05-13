@@ -34,9 +34,121 @@
 
 ## Архитектура
 
-Диаграмма актуальной архитектуры:
+### Runtime (основной поток запросов)
 
-![Системная архитектура VitaInfo backend](./docs/architecture/system-architecture.png)
+```mermaid
+flowchart LR
+  %% Clients
+  subgraph C[Клиенты]
+    ios[iOS приложение]
+    swagger[Swagger UI]
+    admin[Admin клиент\nX-Admin-Token]
+  end
+
+  %% Edge
+  subgraph E[Edge слой]
+    gw[gateway\nHTTP :8080\n/api/v1]
+  end
+
+  %% Core services
+  subgraph S[Основные сервисы]
+    rpc{{gRPC}}
+    auth[auth-service\n:50051]
+    vit[vitamins-service\n:50052]
+    an[analytics-service\n:50053]
+    notifier[notifier worker]
+  end
+
+  %% Data
+  subgraph D[Хранилища и брокер]
+    pg[(PostgreSQL 16)]
+    redis[(Redis 7)]
+    rmq[(RabbitMQ 3.13\nexchange: vitamins.events)]
+    smtp[SMTP провайдер]
+  end
+
+  ios --> gw
+  swagger --> gw
+  admin --> gw
+
+  gw --> rpc
+  rpc --> auth
+  rpc --> vit
+  rpc --> an
+
+  auth --> pg
+  vit --> pg
+  an --> pg
+  auth --> redis
+
+  auth -->|publish auth.password_*| rmq
+  gw -->|publish analytics.event| rmq
+  rmq -->|consume: analytics| an
+  rmq -->|consume: notifications| notifier
+  notifier --> smtp
+```
+
+### Observability (метрики и логи)
+
+```mermaid
+flowchart LR
+  subgraph APP[Сервисы приложения]
+    gw[gateway\n:8080]
+    auth[auth-service\n:50051]
+    vit[vitamins-service\n:50052]
+    an[analytics-service\n:50053]
+    notifier[notifier\nworker]
+  end
+
+  subgraph MET[Monitoring / Metrics]
+    met{{/metrics endpoints}}
+    prom[Prometheus :9090]
+    graf[Grafana :3000]
+    alert[Alertmanager :9093]
+    pexp[postgres-exporter :9187]
+    rexp[redis-exporter :9121]
+  end
+
+  subgraph LOG[ELK / Логи]
+    logs{{GELF logs}}
+    ls[Logstash\nUDP :12201]
+    es[(Elasticsearch :9200)]
+    kb[Kibana :5601]
+  end
+
+  subgraph DATA[Инфраструктура данных]
+    pg[(PostgreSQL 16)]
+    redis[(Redis 7)]
+  end
+
+  gw --> met
+  auth --> met
+  vit --> met
+  an --> met
+  notifier --> met
+  pexp --> met
+  rexp --> met
+
+  prom -->|scrape| met
+  graf --> prom
+  prom --> alert
+
+  pg --> pexp
+  redis --> rexp
+
+  gw -.-> logs
+  auth -.-> logs
+  vit -.-> logs
+  an -.-> logs
+  notifier -.-> logs
+  logs --> ls
+  ls --> es
+  kb --> es
+```
+
+Редактируемые источники:
+- `docs/architecture/system-architecture.md`
+- `docs/architecture/observability-architecture.md`
 
 
 

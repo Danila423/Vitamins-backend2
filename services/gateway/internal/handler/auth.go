@@ -282,6 +282,28 @@ func (h *AuthHandler) UpdateProfile(c *gin.Context) {
 	})
 }
 
+func (h *AuthHandler) DeleteAccount(c *gin.Context) {
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		send(c, 401, "AUTH_REQUIRED", "Требуется авторизация")
+		return
+	}
+	ctx := c.Request.Context()
+	_, err := h.client.DeleteAccount(ctx, &authv1.DeleteAccountRequest{UserId: userID})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok && st.Code() == codes.NotFound {
+			send(c, 404, "USER_NOT_FOUND", "Пользователь не найден")
+			return
+		}
+		logApp(c).ErrorContext(ctx, "delete account failed", "operation", "auth.account.delete", "user_id", userID, "error", err.Error())
+		send(c, 500, "INTERNAL_ERROR", "Что-то пошло не так.")
+		return
+	}
+	logAudit(c).InfoContext(ctx, "account deleted", "operation", "auth.account.delete", "user_id", userID)
+	c.Status(204)
+}
+
 func (h *AuthHandler) RequestPasswordChange(c *gin.Context) {
 	var r struct{}
 	if err := c.ShouldBindJSON(&r); err != nil && !errors.Is(err, io.EOF) {

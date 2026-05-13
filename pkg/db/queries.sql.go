@@ -106,6 +106,19 @@ func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfilePa
 	return i, err
 }
 
+const deleteUserByID = `-- name: DeleteUserByID :execrows
+DELETE FROM users
+WHERE id = $1
+`
+
+func (q *Queries) DeleteUserByID(ctx context.Context, id int64) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteUserByID, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const listVitaminCatalog = `-- name: ListVitaminCatalog :many
 SELECT id, code, display_name, default_unit, interaction_text, compatibility_text,
        contraindications_text, default_condition, created_at, updated_at

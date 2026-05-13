@@ -1,0 +1,89 @@
+<mxfile host="app.diagrams.net" modified="2026-05-11T00:00:00.000Z" agent="Codex" version="24.7.17" type="device">
+  <diagram id="vitamins-runtime" name="Vitamins Runtime Architecture">
+    <mxGraphModel dx="1800" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="title" value="Vitamins Backend - Runtime Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="10" width="900" height="32" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="clients_box" value="Клиенты" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;align=center;verticalAlign=top;spacingTop=6" vertex="1" parent="1">
+          <mxGeometry x="40" y="55" width="1420" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="ios" value="iOS приложение" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=16" vertex="1" parent="1">
+          <mxGeometry x="90" y="95" width="300" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="swagger" value="Swagger UI" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=16" vertex="1" parent="1">
+          <mxGeometry x="430" y="95" width="300" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="admin" value="Admin клиент&#xa;X-Admin-Token" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=16" vertex="1" parent="1">
+          <mxGeometry x="770" y="90" width="380" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="edge_box" value="Edge слой" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;align=center;verticalAlign=top;spacingTop=6" vertex="1" parent="1">
+          <mxGeometry x="500" y="190" width="520" height="150" as="geometry"/>
+        </mxCell>
+        <mxCell id="gateway" value="gateway&#xa;HTTP :8080&#xa;/api/v1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=15" vertex="1" parent="1">
+          <mxGeometry x="545" y="245" width="220" height="74" as="geometry"/>
+        </mxCell>
+        <mxCell id="grpc" value="gRPC bus" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;dashed=1;fontSize=15" vertex="1" parent="1">
+          <mxGeometry x="805" y="262" width="170" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="services_box" value="Сервисы приложения" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;align=center;verticalAlign=top;spacingTop=6" vertex="1" parent="1">
+          <mxGeometry x="90" y="375" width="1360" height="190" as="geometry"/>
+        </mxCell>
+        <mxCell id="auth" value="auth-service&#xa;:50051" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=16" vertex="1" parent="1">
+          <mxGeometry x="160" y="445" width="240" height="68" as="geometry"/>
+        </mxCell>
+        <mxCell id="vit" value="vitamins-service&#xa;:50052" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=16" vertex="1" parent="1">
+          <mxGeometry x="450" y="445" width="240" height="68" as="geometry"/>
+        </mxCell>
+        <mxCell id="an" value="analytics-service&#xa;:50053" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=16" vertex="1" parent="1">
+          <mxGeometry x="740" y="445" width="240" height="68" as="geometry"/>
+        </mxCell>
+        <mxCell id="ntf" value="notifier worker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=16" vertex="1" parent="1">
+          <mxGeometry x="1030" y="445" width="240" height="68" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="data_box" value="Хранилища и брокер" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;align=center;verticalAlign=top;spacingTop=6" vertex="1" parent="1">
+          <mxGeometry x="90" y="600" width="1360" height="250" as="geometry"/>
+        </mxCell>
+        <mxCell id="pg" value="PostgreSQL 16" style="shape=cylinder;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;fillColor=#ffffff;strokeColor=#333333;fontSize=16" vertex="1" parent="1">
+          <mxGeometry x="150" y="700" width="210" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="redis" value="Redis 7" style="shape=cylinder;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;fillColor=#ffffff;strokeColor=#333333;fontSize=16" vertex="1" parent="1">
+          <mxGeometry x="390" y="700" width="180" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="rmq" value="RabbitMQ 3.13&#xa;exchange: vitamins.events" style="shape=cylinder;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;fillColor=#ffffff;strokeColor=#333333;fontSize=16" vertex="1" parent="1">
+          <mxGeometry x="700" y="680" width="410" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="smtp" value="SMTP провайдер" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontSize=15" vertex="1" parent="1">
+          <mxGeometry x="790" y="800" width="230" height="36" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="ios" target="gateway"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="swagger" target="gateway"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="admin" target="gateway"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="e4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="gateway" target="grpc"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="grpc" target="auth"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="grpc" target="vit"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="grpc" target="an"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="auth" target="pg"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="auth" target="redis"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="vit" target="pg"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="an" target="pg"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="e12" value="publish auth.password_*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="auth" target="rmq"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e13" value="publish analytics.event" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="gateway" target="rmq"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e14" value="consume analytics" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="rmq" target="an"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e15" value="consume notifications" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;" edge="1" parent="1" source="rmq" target="ntf"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="ntf" target="smtp"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

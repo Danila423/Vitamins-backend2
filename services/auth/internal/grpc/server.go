@@ -65,6 +65,13 @@ func (s *Server) UpdateProfile(ctx context.Context, req *authv1.UpdateProfileReq
 	return profileResponse(p), nil
 }
 
+func (s *Server) DeleteAccount(ctx context.Context, req *authv1.DeleteAccountRequest) (*authv1.Empty, error) {
+	if err := s.svc.DeleteAccount(ctx, req.GetUserId()); err != nil {
+		return nil, mapError(err)
+	}
+	return &authv1.Empty{}, nil
+}
+
 func (s *Server) RequestPasswordReset(ctx context.Context, req *authv1.RequestPasswordResetRequest) (*authv1.Empty, error) {
 	if err := s.svc.RequestPasswordReset(ctx, req.GetEmail()); err != nil {
 		return nil, mapError(err)

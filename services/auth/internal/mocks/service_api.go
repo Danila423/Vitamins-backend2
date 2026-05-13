@@ -52,6 +52,24 @@ func (_m *ServiceAPI) ConfirmPasswordReset(ctx context.Context, resetToken strin
 	return r0
 }
 
+// DeleteAccount provides a mock function with given fields: ctx, userID
+func (_m *ServiceAPI) DeleteAccount(ctx context.Context, userID int64) error {
+	ret := _m.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAccount")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, int64) error); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetProfile provides a mock function with given fields: ctx, userID
 func (_m *ServiceAPI) GetProfile(ctx context.Context, userID int64) (service.UserProfile, error) {
 	ret := _m.Called(ctx, userID)

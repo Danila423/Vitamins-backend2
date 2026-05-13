@@ -82,3 +82,14 @@ func (r *sqlcUserRepository) UpdateUserProfile(ctx context.Context, userID int64
 	}
 	return fromDBUser(u), nil
 }
+
+func (r *sqlcUserRepository) DeleteUser(ctx context.Context, userID int64) error {
+	rows, err := r.q.DeleteUserByID(ctx, userID)
+	if err != nil {
+		return mapDBError(err)
+	}
+	if rows == 0 {
+		return ErrUserNotFound
+	}
+	return nil
+}

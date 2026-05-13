@@ -156,6 +156,7 @@ func main() {
 		{
 			userGroup.GET("/me", authHandler.GetProfile)
 			userGroup.PATCH("/me", authHandler.UpdateProfile)
+			userGroup.DELETE("/me", authHandler.DeleteAccount)
 			userGroup.POST("/me/password/change/request", authHandler.RequestPasswordChange)
 			userGroup.POST("/me/password/change/verify", authHandler.VerifyPasswordChangeCode)
 			userGroup.POST("/me/password/change/confirm", authHandler.ConfirmPasswordChange)
