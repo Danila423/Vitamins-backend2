@@ -3,6 +3,7 @@
 package e2e
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"testing"
@@ -36,10 +37,11 @@ func TestAuthFlowE2E_RegisterRefreshGetProfile(t *testing.T) {
 	requireGateway(t, baseURL)
 
 	e := httpexpect.Default(t, baseURL)
+	email := fmt.Sprintf("e2e-%d@test.local", time.Now().UnixNano())
 
 	registerResp := e.POST("/api/v1/auth/register").
 		WithJSON(map[string]any{
-			"email":    "e2e@test.local",
+			"email":    email,
 			"password": "Passw0rd1",
 		}).
 		Expect().
@@ -66,7 +68,7 @@ func TestAuthFlowE2E_RegisterRefreshGetProfile(t *testing.T) {
 		JSON().Object().Raw()
 
 	want := map[string]any{
-		"email":     "e2e@test.local",
+		"email":     email,
 		"firstName": "",
 		"lastName":  "",
 	}
